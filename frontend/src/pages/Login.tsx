@@ -9,6 +9,8 @@ const navigate = useNavigate();
     <>
         <form action="/pagina-login" method='post'>
           <div>
+            <h2>NAGO</h2>
+            <h5>Nucleo para Arquivo de Games e Organização</h5>
             <label htmlFor="nome">Email:</label>
             <input type="email" placeholder='Entre com seu email' id='email'/>
 
