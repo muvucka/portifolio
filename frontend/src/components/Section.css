@@ -1,0 +1,22 @@
+
+.section {
+  margin-bottom: 32px;
+}
+
+.section h3 {
+  font-size: 1.2rem;
+  margin-bottom: 12px;
+  font-family: var(--font-main);
+}
+
+.carrosel {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding-bottom: 8px;
+}
+
+.carrosel::-webkit-scrollbar {
+  display: none;
+}

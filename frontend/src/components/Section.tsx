@@ -1,5 +1,6 @@
 import { DeckCard } from "./DeckCard";
 import type { Deck } from "../types/Deck";
+import "./Section.css";
 
 interface SectionProps {
     title: string;
