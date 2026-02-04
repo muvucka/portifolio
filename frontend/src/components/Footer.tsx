@@ -5,7 +5,7 @@ export default function Footer() {
             <footer className="footer-arco">
                 <div className="footer-content">
                     <p >
-                        © 2026 — NAGO
+                        © 2026 NAGO por Sonw
                     </p>
                 </div>
             </footer>

@@ -15,6 +15,20 @@ html, body {
   flex-direction: column;
 }
 
+.icons{
+  display: flex;
+  color: #fff;
+  font-size: 1.3rem;
+}
+
+h1 {
+  color: #fff;
+  margin-bottom: 25px;
+  font-weight: 800;
+  font-size: 2rem;
+  letter-spacing: 0.5px;
+}
+
 .footer-arco {
     position: relative;
     box-shadow: 0 -10px 30px rgba(229, 9, 20, 0.4);

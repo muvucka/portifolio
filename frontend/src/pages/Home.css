@@ -1,0 +1,11 @@
+.home {
+  min-height: 100vh;
+  padding: 24px;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+}
+
+.home h2 {
+  font-size: 1.8rem;
+  margin-bottom: 24px;
+}
