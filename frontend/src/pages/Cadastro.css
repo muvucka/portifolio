@@ -1,4 +1,4 @@
-.login-page {
+.register-page {
   margin: 0;
   padding: 0;
   width: 100vw;       /* largura total da tela */
@@ -23,17 +23,7 @@
  top: 22px;
 }
 
-.register-button {
- display: flex;
- align-self: end; 
- align-content: flex-end;
- position: absolute;
- right: 22px;
- top: 22px;
-  border-radius: 12px;
-}
-
-.login-card {
+.register-card {
   width: 320px;
   background-color: rgba(0,0,0,0.75); 
   padding: 40px;
@@ -44,7 +34,7 @@
   align-items: center;   
 }
 
-.login-card h1 {
+.register-card h1 {
   color: #fff;
   margin-bottom: 25px;
   font-weight: 800;
@@ -52,34 +42,34 @@
   letter-spacing: 0.5px;
 }
 
-.login-card h5 {
+.register-card h5 {
   color: #fff;
   margin-bottom: 25px;
   font-size: smaller;
   margin-top: 1px;
 }
 
-.login-card label {
+.register-card label {
   display: block;
   color: #b3b3b3;
   font-size: 0.9rem;
   margin-bottom: 5px;
 }
 
-.login-card .icons {
+.register-card .icons {
   display: flex;            /* ativa flexbox */
   align-items: center;      /* alinha verticalmente ao centro */
   gap: 5px;                 /* espaço entre ícone e texto */
   margin-top: 12px;         /* separação do botão acima */
 }
 
-.login-card .icons h5 {
+.register-card .icons h5 {
   margin: 0;                /* remove margem padrão do h5 */
   font-size: 1.1rem;        /* ajusta para caber melhor com ícone */
   line-height: 1;           /* evita desalinhamento vertical */
 }
 
-.login-card input {
+.register-card input {
   width: 100%;
   height: 40px;
   margin-bottom: 20px;
@@ -93,11 +83,11 @@
 
 }
 
-.login-card input::placeholder {
+.register-card input::placeholder {
   color: #8c8c8c;
 }
 
-.login-card button {
+.register-card button {
   width: 320px;
   height: 40px;
   border: none;
@@ -110,12 +100,12 @@
   box-sizing: border-box;
 }
 
-.login-card button:hover {
+.register-card button:hover {
   background-color: #f6121d;
 }
 
 @media (max-width: 480px) {
-  .login-card{
+  .register-card{
     width: 90%;
     margin: 60px auto;
     padding: 30px;

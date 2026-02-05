@@ -10,6 +10,9 @@ const navigate = useNavigate();
       <div className="top-left-icon">
         <img src="/beholder.svg" alt="Beholder" width={120} height={120} />
       </div>
+      <button className="register-button" type="submit" onClick={() => navigate("./register")}>
+        Inscrever-se
+      </button>
       <form className="login-card" action="/pagina-login" method='post'>
         <div>
           <h1>Entrar</h1>
@@ -19,7 +22,7 @@ const navigate = useNavigate();
           <input type="password" placeholder='Entre com sua senha' id="senha"/>
         </div>
           <div>
-            <button type="submit" onClick={() => navigate("/Home")}>
+            <button type="submit" onClick={() => navigate("/home")}>
               Entrar
             </button>
           </div>
