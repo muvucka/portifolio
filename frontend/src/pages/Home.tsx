@@ -10,13 +10,17 @@ const decksVtes: Deck[] = [
     id: "1",
     name: "VTES Brujah",
     coverImage: brujah,
-    cardsCount: 62
+    cardsCount: 62,
+    category: 'commander',
+    lastUpdatedAt: '2026-02-01T14:32:00Z'
   },
   {
     id: "2",
     name: "VTES Tremere",
     coverImage: tremere,
-    cardsCount: 60
+    cardsCount: 60,
+    category: 'commander',
+    lastUpdatedAt: '2026-02-01T14:32:00Z'
   }
 ];
 

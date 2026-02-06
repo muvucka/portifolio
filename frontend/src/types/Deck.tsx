@@ -2,5 +2,8 @@ export interface Deck {
   id: string;
   name: string;
   coverImage: string;
-  cardsCount?: number;
+  category: string;        // ex: Commander, Standard, Modern, Cube
+  cardsCount: number;
+
+  lastUpdatedAt: string;
 }
