@@ -1,16 +1,22 @@
 model Card {
   id String @id @default(uuid())
+  scryfallId String @unique
   name String
-  imageUrl String?
-  setId String
-  set Set @relation(fields: [setId], references: [id])
+  typeLine String
+  cmc String
+  imageNormal String?
+  imageArtCrop String?
+  colors String[]
+  setCode String
+  setName String
 
   deckCards DeckCard[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([setId])
+  @@index([name])
+  @@index(setCode)
 }
 
 model Set {
@@ -26,6 +32,7 @@ model Set {
 model Deck {
   id String @id @default(uuid())
   name String
+  format String
   deckCards DeckCard[]
 
   createdAt DateTime @default(now())
@@ -41,7 +48,7 @@ model DeckCard {
   cardId String
   card Card @relation(fields: [cardId], references: [id])
 
-  amount Int
+  quantity Int
 
   @@unique([deckId, cardId])
   @@index([deckId])
