@@ -3,14 +3,17 @@ import type { Request, Response } from "express";
 
 import {
   createDeck,
-  addCardToDeck,
   getDeckById,
-  getDeckStats,
+  getAllDecks,
+  updateDeck,
+  deleteDeck,
+  importDeck,
 } from "../services/deck.js";
 
 import type {
   CreateDeckDTO,
-  AddCardDTO,
+  UpdateDeckDTO,
+  ImportDeckDTO,
 } from "../types/deckTypes.js";
 
 const router = Router();
@@ -27,34 +30,6 @@ router.post(
     try {
       const deck = await createDeck(req.body);
       res.json(deck);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      }
-    }
-  }
-);
-
-/* =========================
-   ADD CARD TO DECK
-========================= */
-router.post(
-  "/:id/cards",
-  async (
-    req: Request<{ id: string }, {}, AddCardDTO>,
-    res: Response
-  ) => {
-    try {
-      const { id } = req.params;
-      const { cardName, quantity } = req.body;
-
-      const result = await addCardToDeck(
-        id,
-        cardName,
-        quantity ?? 1
-      );
-
-      res.json(result);
     } catch (error: unknown) {
       if (error instanceof Error) {
         res.status(400).json({ error: error.message });
@@ -86,19 +61,71 @@ router.get(
 );
 
 /* =========================
-   GET STATS
+   GET ALL DECKS
 ========================= */
 router.get(
-  "/:id/stats",
+  "/",
+  async (_req: Request, res: Response) => {
+    try {
+      const decks = await getAllDecks();
+      res.json(decks);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      }
+    }
+  }
+);
+
+/* =========================
+   UPDATE DECK
+========================= */
+router.patch(
+  "/:id",
+  async (
+    req: Request<{ id: string }, {}, UpdateDeckDTO>,
+    res: Response
+  ) => {
+    try {
+      const deck = await updateDeck(req.params.id, req.body);
+      res.json(deck);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        res.status(400).json({ error: error.message });
+      }
+    }
+  }
+);
+
+/* =========================
+   DELETE DECK
+========================= */
+router.delete(
+  "/:id",
   async (
     req: Request<{ id: string }>,
     res: Response
   ) => {
     try {
-      const { id } = req.params;
+      await deleteDeck(req.params.id);
+      res.json({ message: "Deck deleted" });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        res.status(404).json({ error: error.message });
+      }
+    }
+  }
+);
 
-      const stats = await getDeckStats(id);
-      res.json(stats);
+router.post(
+  "/import",
+  async (
+    req: Request<{}, {}, ImportDeckDTO>,
+    res: Response
+  ) => {
+    try {
+      const deck = await importDeck(req.body);
+      res.json(deck);
     } catch (error: unknown) {
       if (error instanceof Error) {
         res.status(400).json({ error: error.message });

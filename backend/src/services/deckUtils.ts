@@ -1,7 +1,6 @@
 // mapDeckToResponse.ts
 
-// CommonJS require
-const { prisma } = require('../prisma');
+import { prisma } from './prisma.js';
 
 // Tipos TypeScript
 type Card = {
@@ -25,13 +24,15 @@ type Deck = {
   deckCards: DeckCard[];
 };
 
-// Função tipada TS, mas usando CommonJS
-function mapDeckToResponse(deck: Deck) {
+export function mapDeckToResponse(deck: Deck) {
   return {
     deck: {
       id: deck.id,
       name: deck.name,
-      cardsCount: deck.deckCards.reduce((sum: number, dc: DeckCard) => sum + dc.quantity, 0),
+      cardsCount: deck.deckCards.reduce(
+        (sum: number, dc: DeckCard) => sum + dc.quantity,
+        0
+      ),
     },
     cards: deck.deckCards.map((dc: DeckCard) => ({
       id: dc.id,
@@ -45,5 +46,3 @@ function mapDeckToResponse(deck: Deck) {
     })),
   };
 }
-
-module.exports = { mapDeckToResponse };

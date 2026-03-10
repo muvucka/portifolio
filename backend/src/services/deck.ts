@@ -1,7 +1,7 @@
 import { prisma } from "./prisma.js";
 import type { Deck, DeckCard, Card } from "@prisma/client";
 import { getOrCreateCard } from "./card.js";
-import type { CreateDeckDTO, DeckStats } from "../types/deckTypes.js";
+import type { CreateDeckDTO, DeckStats, ImportDeckDTO } from "../types/deckTypes.js";
 
 const MAX_COMMANDER_CARDS = 99;
 
@@ -36,6 +36,101 @@ export async function createDeck(
 }
 
 /* =========================
+   GET ALL DECKS
+========================= */
+export async function getAllDecks(): Promise<Deck[]> {
+  return prisma.deck.findMany({
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
+
+export async function importDeck(
+  data: ImportDeckDTO
+): Promise<Deck> {
+  const commander = await getOrCreateCard(data.commanderName);
+
+  if (!commander.typeLine.includes("Legendary")) {
+    throw new Error("Comandante precisa ser lendário.");
+  }
+
+  const deck = await prisma.deck.create({
+    data: {
+      name: data.name,
+      format: "commander",
+      commanderId: commander.id,
+    },
+  });
+
+  const lines = data.decklist
+    .split("\n")
+    .map(l => l.trim())
+    .filter(Boolean);
+
+  for (const line of lines) {
+    const match = line.match(/^(\d+)x?\s+(.+)$/i);
+
+    if (!match) continue;
+
+    const quantity = Number(match[1]);
+    const cardName = match[2]!;
+
+    try {
+      await addCardToDeck(deck.id, cardName, quantity);
+    } catch (err) {
+      console.warn(`Erro ao importar carta ${cardName}`);
+    }
+  }
+
+  return deck;
+}
+
+/* =========================
+   UPDATE DECK
+========================= */
+export async function updateDeck(
+  deckId: string,
+  data: { name?: string }
+): Promise<Deck> {
+  const deck = await prisma.deck.findUnique({
+    where: { id: deckId },
+  });
+
+  if (!deck) {
+    throw new Error("Deck não encontrado.");
+  }
+
+  return prisma.deck.update({
+    where: { id: deckId },
+    data,
+  });
+}
+
+/* =========================
+   DELETE DECK
+========================= */
+export async function deleteDeck(
+  deckId: string
+): Promise<void> {
+  const deck = await prisma.deck.findUnique({
+    where: { id: deckId },
+  });
+
+  if (!deck) {
+    throw new Error("Deck não encontrado.");
+  }
+
+  await prisma.deckCard.deleteMany({
+    where: { deckId },
+  });
+
+  await prisma.deck.delete({
+    where: { id: deckId },
+  });
+}
+
+/* =========================
    ADD CARD
 ========================= */
 export async function addCardToDeck(
@@ -52,11 +147,11 @@ export async function addCardToDeck(
 
   const card = await getOrCreateCard(cardName);
 
-  // Verifica cores do comandante
   const invalidColor = card.colorIdentity.find(
     (color: string) =>
       !deck.commander?.colorIdentity.includes(color)
   );
+
   if (invalidColor) {
     throw new Error(
       "Carta fora da identidade de cor do comandante."
@@ -72,24 +167,23 @@ export async function addCardToDeck(
     },
   });
 
-  // Limita cópias de cartas não básicas
   if (existing && !card.isBasicLand) {
     throw new Error(
       "Commander permite apenas 1 cópia dessa carta."
     );
   }
 
-  // Limite total de 99 cartas
   const totalCards = await prisma.deckCard.aggregate({
     where: { deckId },
     _sum: { quantity: true },
   });
+
   const currentTotal = totalCards._sum.quantity ?? 0;
+
   if (currentTotal + quantity > MAX_COMMANDER_CARDS) {
     throw new Error("Deck já possui 99 cartas.");
   }
 
-  // Atualiza ou cria
   if (existing) {
     return prisma.deckCard.update({
       where: { id: existing.id },
@@ -103,6 +197,74 @@ export async function addCardToDeck(
       cardId: card.id,
       quantity,
     },
+  });
+}
+
+/* =========================
+   UPDATE CARD QUANTITY
+========================= */
+export async function updateCardQuantity(
+  deckId: string,
+  cardId: string,
+  quantity: number
+): Promise<DeckCard> {
+  if (quantity < 1) {
+    throw new Error("Quantidade deve ser maior que 0.");
+  }
+
+  const entry = await prisma.deckCard.findUnique({
+    where: {
+      deckId_cardId: {
+        deckId,
+        cardId,
+      },
+    },
+  });
+
+  if (!entry) {
+    throw new Error("Carta não encontrada no deck.");
+  }
+
+  const card = await prisma.card.findUnique({
+    where: { id: cardId },
+  });
+
+  if (!card) {
+    throw new Error("Carta inválida.");
+  }
+
+  if (!card.isBasicLand && quantity > 1) {
+    throw new Error("Commander permite apenas 1 cópia.");
+  }
+
+  return prisma.deckCard.update({
+    where: { id: entry.id },
+    data: { quantity },
+  });
+}
+
+/* =========================
+   REMOVE CARD
+========================= */
+export async function removeCardFromDeck(
+  deckId: string,
+  cardId: string
+): Promise<void> {
+  const entry = await prisma.deckCard.findUnique({
+    where: {
+      deckId_cardId: {
+        deckId,
+        cardId,
+      },
+    },
+  });
+
+  if (!entry) {
+    throw new Error("Carta não encontrada no deck.");
+  }
+
+  await prisma.deckCard.delete({
+    where: { id: entry.id },
   });
 }
 
@@ -135,20 +297,23 @@ export async function getDeckStats(
 
   let totalCMC = 0;
   let totalCards = 0;
+
   const typeCount: Record<string, number> = {};
 
   deck.deckCards.forEach(entry => {
     const card = entry.card;
-    if (!card) return; 
+    if (!card) return;
 
-    // Calcula total CMC
     const cmc = Number(card.cmc ?? 0);
+
     totalCMC += cmc * entry.quantity;
     totalCards += entry.quantity;
 
-    // Conta tipos
-    const type = card.typeLine?.split("—")[0]?.trim()?? "Unknown";
-    typeCount[type] = (typeCount[type] ?? 0) + entry.quantity;
+    const type =
+      card.typeLine?.split("—")[0]?.trim() ?? "Unknown";
+
+    typeCount[type] =
+      (typeCount[type] ?? 0) + entry.quantity;
   });
 
   return {
