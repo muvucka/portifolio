@@ -28,7 +28,8 @@ router.post(
     res: Response
   ) => {
     try {
-      const deck = await createDeck(req.body);
+      const userId = req.user!.id;
+      const deck = await createDeck(userId, req.body);
       res.json(deck);
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -48,9 +49,14 @@ router.get(
     res: Response
   ) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
       const { id } = req.params;
 
-      const deck = await getDeckById(id);
+      const deck = await getDeckById(id, req.user.id);
+
       res.json(deck);
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -65,9 +71,14 @@ router.get(
 ========================= */
 router.get(
   "/",
-  async (_req: Request, res: Response) => {
+  async (req: Request, res: Response) => {
     try {
-      const decks = await getAllDecks();
+      if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const decks = await getAllDecks(req.user.id);
+
       res.json(decks);
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -124,7 +135,12 @@ router.post(
     res: Response
   ) => {
     try {
-      const deck = await importDeck(req.body);
+      if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const deck = await importDeck(req.user.id, req.body);
+
       res.json(deck);
     } catch (error: unknown) {
       if (error instanceof Error) {

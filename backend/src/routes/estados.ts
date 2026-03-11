@@ -18,7 +18,15 @@ router.get(
     res: Response
   ) => {
     try {
-      const stats = await getDeckStats(req.params.id);
+      if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const stats = await getDeckStats(
+        req.params.id,
+        req.user.id
+      );
+
       res.json(stats);
     } catch (error: unknown) {
       if (error instanceof Error) {

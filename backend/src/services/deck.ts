@@ -18,6 +18,7 @@ export type DeckWithCards = Deck & {
    CREATE DECK
 ========================= */
 export async function createDeck(
+  userId: string,
   data: CreateDeckDTO
 ): Promise<Deck> {
   const commander = await getOrCreateCard(data.commanderName);
@@ -31,6 +32,7 @@ export async function createDeck(
       name: data.name,
       format: "commander",
       commanderId: commander.id,
+      userId,
     },
   });
 }
@@ -38,8 +40,11 @@ export async function createDeck(
 /* =========================
    GET ALL DECKS
 ========================= */
-export async function getAllDecks(): Promise<Deck[]> {
+export async function getAllDecks(userId: string): Promise<Deck[]> {
   return prisma.deck.findMany({
+    where: {
+      userId,
+    },
     orderBy: {
       createdAt: "desc",
     },
@@ -47,6 +52,7 @@ export async function getAllDecks(): Promise<Deck[]> {
 }
 
 export async function importDeck(
+  userId: string,
   data: ImportDeckDTO
 ): Promise<Deck> {
   const commander = await getOrCreateCard(data.commanderName);
@@ -60,6 +66,7 @@ export async function importDeck(
       name: data.name,
       format: "commander",
       commanderId: commander.id,
+      userId,
     },
   });
 
@@ -272,10 +279,11 @@ export async function removeCardFromDeck(
    GET DECK
 ========================= */
 export async function getDeckById(
-  deckId: string
+  deckId: string,
+  userId: string
 ): Promise<DeckWithCards | null> {
   return prisma.deck.findUnique({
-    where: { id: deckId },
+    where: { id: deckId, userId},
     include: {
       commander: true,
       deckCards: {
@@ -289,9 +297,10 @@ export async function getDeckById(
    STATS
 ========================= */
 export async function getDeckStats(
-  deckId: string
+  deckId: string,
+  userId: string
 ): Promise<DeckStats> {
-  const deck = await getDeckById(deckId);
+  const deck = await getDeckById(userId, deckId);
 
   if (!deck) throw new Error("Deck não encontrado.");
 
