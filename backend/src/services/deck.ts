@@ -1,4 +1,4 @@
-import { prisma } from "./prisma.js";
+import { prisma } from "../config/prisma.js";
 import type { Deck, DeckCard, Card } from "@prisma/client";
 import { getOrCreateCard } from "./card.js";
 import type { CreateDeckDTO, DeckStats, ImportDeckDTO } from "../types/deckTypes.js";

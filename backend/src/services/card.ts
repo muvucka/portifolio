@@ -1,4 +1,4 @@
-import { prisma } from "./prisma.js";
+import { prisma } from "../config/prisma.js";
 import type { ScryfallCard } from "../types/scryfallTypes.js";
 import { fetchCardByName } from "./scryfall.js";
 

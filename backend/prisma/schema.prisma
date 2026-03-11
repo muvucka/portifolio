@@ -1,9 +1,11 @@
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
   provider = "prisma-client-js"
+  output   = "./generated/client"
 }
 
 model User {
@@ -15,18 +17,16 @@ model User {
 }
 
 model Card {
-  id            String   @id @default(uuid())
-  scryfallId    String   @unique
-  name          String
-  typeLine      String
-  colorIdentity String[]
-  cmc           Float
-  imageNormal   String?
-  imageArtCrop  String?
-  colors        String[]
-  setCode       String
-  setName       String
-  isBasicLand   Boolean?
+  id           String   @id @default(uuid())
+  scryfallId   String   @unique
+  name         String
+  typeLine     String
+  cmc          Float
+  imageNormal  String?
+  imageArtCrop String?
+  setCode      String
+  setName      String
+  isBasicLand  Boolean?
 
   deckCards DeckCard[]
 
@@ -34,11 +34,35 @@ model Card {
 
   set Set @relation(fields: [setCode], references: [name])
 
+  // Relacionamentos para listas
+  colorIdentities CardColorIdentity[]
+  colors          CardColor[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([name])
   @@index(setCode)
+}
+
+model CardColorIdentity {
+  id     Int    @id @default(autoincrement())
+  cardId String
+  value  String
+
+  card Card @relation(fields: [cardId], references: [id])
+
+  @@index([cardId])
+}
+
+model CardColor {
+  id     Int    @id @default(autoincrement())
+  cardId String
+  value  String
+
+  card Card @relation(fields: [cardId], references: [id])
+
+  @@index([cardId])
 }
 
 model Set {

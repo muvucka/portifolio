@@ -1,6 +1,6 @@
 // mapDeckToResponse.ts
 
-import { prisma } from '../services/prisma.js';
+import { prisma } from '../config/prisma.js';
 
 // Tipos TypeScript
 type Card = {
