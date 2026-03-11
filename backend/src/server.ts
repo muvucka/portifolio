@@ -1,9 +1,7 @@
-import express = require('express');
+import app from "./app.js";
 
-const app = express();
+const PORT = 3000;
 
-app.get('/', (req: express.Request, res: express.Response) => {
-  res.send('Servidor rodando!');
+app.listen(PORT, () => {
+  console.log(`Server running on ${PORT}`);
 });
-
-module.exports = app;
