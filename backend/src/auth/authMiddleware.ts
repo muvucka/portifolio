@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express"
-import { verifyRefreshToken } from "../utils/jwt.js"
+import { verifyAccessToken } from "../utils/jwt.js"
 
 export function authMiddleware(
   req: Request,
@@ -17,9 +17,10 @@ export function authMiddleware(
 
   try {
 
-    const payload = verifyRefreshToken(token)
+    const payload = verifyAccessToken(token);
 
-    ;(req as any).userId = payload.userId
+   // Atribuindo o objeto completo do usuário em req.user
+    (req as any).user = { id: payload.userId }
 
     next()
 

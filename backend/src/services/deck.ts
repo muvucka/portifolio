@@ -1,6 +1,6 @@
-import { prisma } from "../config/prisma.js";
-import type { Deck, DeckCard, Card } from "@prisma/client";
-import { getOrCreateCard } from "./card.js";
+import prisma from "../services/prisma.js";
+import type { Deck, DeckCard, Card } from "../../prisma/generated/client/index.js";
+import { getOrCreateCard } from "./card.js";  // Função importada
 import type { CreateDeckDTO, DeckStats, ImportDeckDTO } from "../types/deckTypes.js";
 
 const MAX_COMMANDER_CARDS = 99;
@@ -17,24 +17,41 @@ export type DeckWithCards = Deck & {
 /* =========================
    CREATE DECK
 ========================= */
-export async function createDeck(
-  userId: string,
-  data: CreateDeckDTO
-): Promise<Deck> {
-  const commander = await getOrCreateCard(data.commanderName);
-
+// Função de criação de deck
+export async function createDeck(userId: string, data: CreateDeckDTO): Promise<Deck> {
+  // Busca ou cria o comandante
+  const commander = await getOrCreateCard(data.commanderName)
+  // Verifica se o comandante é lendário
   if (!commander.typeLine.includes("Legendary")) {
     throw new Error("Comandante precisa ser lendário.");
   }
 
-  return prisma.deck.create({
+  // Criação do deck
+  const deck = await prisma.deck.create({
     data: {
       name: data.name,
+      description: data.description,
       format: "commander",
       commanderId: commander.id,
       userId,
     },
   });
+
+  // Para cada card no array de cards, cria ou busca o card e associa ao deck
+  for (const cardData of data.cards) {
+    // Passando todos os 4 parâmetros para a função getOrCreateCard
+    const card = await getOrCreateCard(cardData.name)
+    // Cria a associação entre o deck e o card
+    await prisma.deckCard.create({
+      data: {
+        deckId: deck.id,
+        cardId: card.id,
+        quantity: cardData.quantity,
+      },
+    });
+  }
+
+  return deck;
 }
 
 /* =========================
@@ -55,8 +72,7 @@ export async function importDeck(
   userId: string,
   data: ImportDeckDTO
 ): Promise<Deck> {
-  const commander = await getOrCreateCard(data.commanderName);
-
+  const commander = await getOrCreateCard(data.commanderName)
   if (!commander.typeLine.includes("Legendary")) {
     throw new Error("Comandante precisa ser lendário.");
   }
@@ -138,33 +154,54 @@ export async function deleteDeck(
 }
 
 /* =========================
-   ADD CARD
+   ADD CARD TO DECK
 ========================= */
 export async function addCardToDeck(
   deckId: string,
   cardName: string,
   quantity: number = 1
 ): Promise<DeckCard> {
+  // Busca o deck com o comandante, incluindo suas cores
   const deck = await prisma.deck.findUnique({
     where: { id: deckId },
-    include: { commander: true },
+    include: {
+      commander: {
+        include: { colorIdentities: true } // inclui cores do comandante
+      },
+    },
   });
 
   if (!deck) throw new Error("Deck não encontrado.");
+  if (!deck.commander) throw new Error("Deck não tem comandante definido.");
 
+  // Busca ou cria a carta, incluindo suas cores e colorIdentities
   const card = await getOrCreateCard(cardName);
 
-  const invalidColor = card.colorIdentity.find(
-    (color: string) =>
-      !deck.commander?.colorIdentity.includes(color)
-  );
+  // Incluindo colorIdentities e colors na consulta do Prisma para o card
+  const cardWithColors = await prisma.card.findUnique({
+    where: { id: card.id },
+    include: {
+      colorIdentities: true, // Inclui colorIdentities ao buscar o card
+      colors: true,           // Inclui colors ao buscar o card
+    },
+  });
 
-  if (invalidColor) {
-    throw new Error(
-      "Carta fora da identidade de cor do comandante."
-    );
+  if (!cardWithColors) {
+    throw new Error("Card não encontrado ou não pode ser criado.");
   }
 
+  // Extrai arrays de cores (strings) de card e comandante
+  const cardColors = cardWithColors.colorIdentities.map(c => c.value);
+  const commanderColors = deck.commander.colorIdentities.map(c => c.value);
+
+  // Verifica se alguma cor da carta não está na identidade do comandante
+  const invalidColor = cardColors.find(color => !commanderColors.includes(color));
+
+  if (invalidColor) {
+    throw new Error("Carta fora da identidade de cor do comandante.");
+  }
+
+  // Verifica se já existe a carta no deck
   const existing = await prisma.deckCard.findUnique({
     where: {
       deckId_cardId: {
@@ -175,11 +212,10 @@ export async function addCardToDeck(
   });
 
   if (existing && !card.isBasicLand) {
-    throw new Error(
-      "Commander permite apenas 1 cópia dessa carta."
-    );
+    throw new Error("Commander permite apenas 1 cópia dessa carta.");
   }
 
+  // Verifica se o deck não ultrapassa 99 cartas
   const totalCards = await prisma.deckCard.aggregate({
     where: { deckId },
     _sum: { quantity: true },
@@ -191,6 +227,7 @@ export async function addCardToDeck(
     throw new Error("Deck já possui 99 cartas.");
   }
 
+  // Atualiza quantidade se já existir
   if (existing) {
     return prisma.deckCard.update({
       where: { id: existing.id },
@@ -198,6 +235,7 @@ export async function addCardToDeck(
     });
   }
 
+  // Cria nova entrada
   return prisma.deckCard.create({
     data: {
       deckId,
@@ -206,7 +244,6 @@ export async function addCardToDeck(
     },
   });
 }
-
 /* =========================
    UPDATE CARD QUANTITY
 ========================= */
@@ -283,7 +320,7 @@ export async function getDeckById(
   userId: string
 ): Promise<DeckWithCards | null> {
   return prisma.deck.findUnique({
-    where: { id: deckId, userId},
+    where: { id: deckId, userId },
     include: {
       commander: true,
       deckCards: {

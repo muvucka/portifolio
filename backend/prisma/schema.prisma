@@ -9,24 +9,36 @@ generator client {
 }
 
 model User {
-  id    String  @id @default(cuid())
-  email String  @unique
-  name  String?
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  decks Deck[]
+  decks         Deck[]
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
 }
 
 model Card {
-  id           String   @id @default(uuid())
-  scryfallId   String   @unique
-  name         String
-  typeLine     String
-  cmc          Float
-  imageNormal  String?
-  imageArtCrop String?
-  setCode      String
-  setName      String
-  isBasicLand  Boolean?
+  id              String   @id @default(uuid())
+  scryfallId      String   @unique
+  name            String
+  typeLine        String
+  cmc             Float
+  imageNormal     String?
+  imageArtCrop    String?
+  setCode         String
+  setName         String
+  isBasicLand     Boolean?
+  collectorNumber String? // Adicionando o campo collector_number
 
   deckCards DeckCard[]
 
@@ -41,6 +53,8 @@ model Card {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Índice composto para busca única por nome e código de set
+  @@unique([name, setCode])
   @@index([name])
   @@index(setCode)
 }

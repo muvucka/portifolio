@@ -1,6 +1,15 @@
+// Atualizando o DTO para refletir as necessidades do modelo Card
 export interface CreateDeckDTO {
   name: string;
-  commanderName: string;
+  description: string;
+  commanderName: string;  // O nome do comandante
+  cards: {
+    name: string;  // Nome do card
+    quantity: number;
+    setCode: string;  // Código do set do card
+    collector_number: string;  // Número do coletor (opcional)
+    image: string;  // Imagem do card
+  }[]; // Lista de cards
 }
 
 export interface AddCardDTO {

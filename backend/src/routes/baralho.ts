@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { Request, Response } from "express";
+import { authMiddleware } from "../auth/authMiddleware.js";
 
 import {
   createDeck,
@@ -21,29 +22,26 @@ const router = Router();
 /* =========================
    CREATE DECK
 ========================= */
-router.post(
-  "/",
-  async (
-    req: Request<{}, {}, CreateDeckDTO>,
-    res: Response
-  ) => {
-    try {
-      const userId = req.user!.id;
-      const deck = await createDeck(userId, req.body);
-      res.json(deck);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      }
+
+// Adicionando o middleware à rota de criação do deck
+router.post("/", authMiddleware, async (req: Request<{}, {}, CreateDeckDTO>, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const deck = await createDeck(userId, req.body);
+    res.json(deck);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      res.status(400).json({ error: error.message });
     }
   }
-);
+});
 
 /* =========================
    GET DECK
 ========================= */
 router.get(
   "/:id",
+  authMiddleware,
   async (
     req: Request<{ id: string }>,
     res: Response
@@ -69,24 +67,21 @@ router.get(
 /* =========================
    GET ALL DECKS
 ========================= */
-router.get(
-  "/",
-  async (req: Request, res: Response) => {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
+router.get("/", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (!req.user.id) {
+      return res.status(401).json({ error: "Unauthorized" })
+    }
 
-      const decks = await getAllDecks(req.user.id);
+    const decks = await getAllDecks(req.user.id)
 
-      res.json(decks);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(500).json({ error: error.message });
-      }
+    res.json(decks)
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message })
     }
   }
-);
+})
 
 /* =========================
    UPDATE DECK
