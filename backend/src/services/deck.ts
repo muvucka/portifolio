@@ -57,15 +57,28 @@ export async function createDeck(userId: string, data: CreateDeckDTO): Promise<D
 /* =========================
    GET ALL DECKS
 ========================= */
-export async function getAllDecks(userId: string): Promise<Deck[]> {
-  return prisma.deck.findMany({
-    where: {
-      userId,
-    },
-    orderBy: {
-      createdAt: "desc",
+export async function getAllDecks(userId: string) {
+  const decks = await prisma.deck.findMany({
+    where: { userId },
+    orderBy: { updatedAt: "desc" },
+    include: {
+      commander: true,
+      deckCards: true,
     },
   });
+
+  return decks.map(deck => ({
+    id: deck.id,
+    name: deck.name,
+    format: deck.format,
+    updatedAt: deck.updatedAt,
+
+    // ✅ capa estilo Spotify
+    coverImage: deck.commander?.imageArtCrop ?? null,
+
+    // ✅ total de cartas
+    cardsCount: deck.deckCards.reduce((sum, c) => sum + c.quantity, 0),
+  }));
 }
 
 export async function importDeck(

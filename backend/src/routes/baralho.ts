@@ -87,7 +87,7 @@ router.get("/", authMiddleware, async (req: Request, res: Response) => {
    UPDATE DECK
 ========================= */
 router.patch(
-  "/:id",
+  "/:id", authMiddleware,
   async (
     req: Request<{ id: string }, {}, UpdateDeckDTO>,
     res: Response
@@ -107,7 +107,7 @@ router.patch(
    DELETE DECK
 ========================= */
 router.delete(
-  "/:id",
+  "/:id", authMiddleware,
   async (
     req: Request<{ id: string }>,
     res: Response
@@ -124,7 +124,7 @@ router.delete(
 );
 
 router.post(
-  "/import",
+  "/import", authMiddleware,
   async (
     req: Request<{}, {}, ImportDeckDTO>,
     res: Response

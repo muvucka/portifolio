@@ -4,6 +4,7 @@ import type { Request, Response } from "express";
 import {
   getDeckStats,
 } from "../services/deck.js";
+import { authMiddleware } from "../auth/authMiddleware.js";
 
 const router = Router();
 
@@ -12,7 +13,7 @@ const router = Router();
    GET DECK STATS
 ========================= */
 router.get(
-  "/:id/stats",
+  "/:id/stats", authMiddleware,
   async (
     req: Request<{ id: string }>,
     res: Response
