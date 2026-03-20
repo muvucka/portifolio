@@ -1,37 +1,96 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./Cadastro.css"
+import "./Cadastro.css";
 import { GiDiceFire } from "react-icons/gi";
 
 function Register() {
+  const navigate = useNavigate();
 
-const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  async function handleRegister(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (password !== confirmPassword) {
+      alert("As senhas não coincidem");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:3000/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Erro ao cadastrar");
+      }
+
+      alert("Conta criada com sucesso!");
+      navigate("/");
+      
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        alert(err.message);
+      } else {
+        alert("Erro inesperado");
+      }
+    } // ✅ fecha o catch
+  } // ✅ fecha a função
+
   return (
-    <div className="register-page" >
+    <div className="register-page">
       <div className="top-left-icon">
         <img src="/beholder.svg" alt="Beholder" width={120} height={120} />
       </div>
-      <form className="register-card" action="/pagina-register" method='post'>
+
+      <form className="register-card" onSubmit={handleRegister}>
         <div>
           <h1>Cadastrar</h1>
-          <h5 >Crie uma conta nova no NAGO com seu email e senha</h5>
-          <input type="email" placeholder="Cadastre um novo email" id="email" />
+          <h5>Crie uma conta nova no NAGO com seu email e senha</h5>
 
-          <input type="password" placeholder='Cadastre uma nova senha' id="senha"/>
-          
-          <input type="password" placeholder='Confirme sua senha' id="senha"/>
+          <input
+            type="email"
+            placeholder="Cadastre um novo email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+
+          <input
+            type="password"
+            placeholder="Cadastre uma nova senha"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          <input
+            type="password"
+            placeholder="Confirme sua senha"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+          />
         </div>
-          <div>
-            <button type="submit" onClick={() => navigate("/")}>
-              Cadastrar
-            </button>
-          </div>
-            <div className="icons">
-              <GiDiceFire /> <h5>Sonw</h5>
-            </div>
-        </form>
-        
+
+        <div>
+          <button type="submit">Cadastrar</button>
+        </div>
+
+        <div className="icons">
+          <GiDiceFire /> <h5>Snow</h5>
+        </div>
+      </form>
     </div>
-  )
+  );
 }
 
-export default Register
+export default Register;

@@ -24,7 +24,7 @@ const navigate = useNavigate();
                 {deck.cardsCount && <span>{deck.cardsCount} cartas</span>}
             </div>
 
-            <button type="submit" onClick={() => navigate("/deck")} className="open-button" aria-label={deck.name}>
+            <button type="submit" onClick={() => navigate(`/deck/${deck.id}`)} className="open-button" aria-label={deck.name}>
                 <GiBehold size={30} />
             </button>
         </div>

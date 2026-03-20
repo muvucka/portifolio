@@ -24,13 +24,30 @@
 }
 
 .register-button {
- display: flex;
- align-self: end; 
- align-content: flex-end;
- position: absolute;
- right: 22px;
- top: 22px;
-  border-radius: 12px;
+  position: absolute;
+  top: 22px;
+  right: 22px;
+
+  padding: 10px 18px;
+  border-radius: 999px; /* estilo pill */
+
+  border: none;
+  background-color: white;
+  color: black;
+
+  font-weight: 600;
+  font-size: 14px;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* hover estilo spotify */
+.register-button:hover {
+  transform: scale(1.05);
+  background-color: #f2f2f2;
 }
 
 .login-card {
