@@ -1,733 +1,332 @@
-    import {useMemo, useState } from 'react';
-    import type { Deck } from '../types/Deck';
-    import { DeckHeader } from '../components/DeckHeader';
-    import "../pages/DeckList.css";
-    import sefris from "../assets/sefris.png";
-    import seasoned from "../assets/seasoned.png";
-    import tortured from "../assets/tortured.png";
-    import { GiBeastEye, 
-            GiUnfriendlyFire, 
-            GiFocusedLightning, 
-            GiMagicLamp, 
-            GiSkullShield, 
-            GiFluffyWing, 
-            GiTriforce,
-            GiFireZone,
-            GiWaterSplash,
-            GiFluffyCloud,
-            GiDreadSkull,
-            GiAlienFire,
-            GiBlackHoleBolas,
-            GiSun,
-            } from "react-icons/gi";
+// src/pages/DeckList.tsx
+import { useEffect, useMemo, useState } from "react";
+import type { Deck } from "../types/Deck";
+import { DeckHeader } from "../components/DeckHeader";
+import "../pages/DeckList.css";
+import type { ApiDeck } from "../adapter/deckAdapter.ts";
+import { mapApiDeckToUI } from "../adapter/deckAdapter.ts";
+import {
+  GiBeastEye,
+  GiUnfriendlyFire,
+  GiFocusedLightning,
+  GiMagicLamp,
+  GiSkullShield,
+  GiFluffyWing,
+  GiTriforce,
+  GiFireZone,
+  GiWaterSplash,
+  GiFluffyCloud,
+  GiDreadSkull,
+  GiAlienFire,
+  GiBlackHoleBolas,
+  GiSun,
+} from "react-icons/gi";
 
-    type GroupBy = 'none' | 'type' | 'cmc' | 'color';
-    type SortBy = 'name' | 'cmc' | 'quantity';
+type GroupBy = "none" | "type" | "cmc" | "color";
+type SortBy = "name" | "cmc" | "quantity";
 
-    interface DeckCard {
-        id: string;
-        cardId: string;
-        name: string;
-        image?: string;
-        quantity: number;
-        typeLine: string;
-        colors: string[];
-        cmc: number;
-        isCommander?: boolean;
-    }
+interface DeckCard {
+  id: string;
+  cardId: string;
+  name: string;
+  image?: string;
+  quantity: number;
+  typeLine: string;
+  colors: string[];
+  cmc: number;
+  isCommander?: boolean;
+}
 
 const GROUP_ORDER: Record<GroupBy, string[]> = {
-    type: ['Commander', 'Creature', 'Sorcery', 'Instant', 'Enchantment', 'Artifact', 'Equipment', 'Land', 'Sideboard'],
-    cmc: ['CMC 0', 'CMC 1', 'CMC 2', 'CMC 3', 'CMC 4', 'CMC 5', 'CMC 6+'],
-    color: ['White', 'Blue', 'Black', 'Red', 'Green', 'Multicolored', 'Colorless'],
-    none: [],
+  type: [
+    "Commander",
+    "Creature",
+    "Sorcery",
+    "Instant",
+    "Enchantment",
+    "Artifact",
+    "Equipment",
+    "Land",
+    "Sideboard",
+  ],
+  cmc: ["CMC 0", "CMC 1", "CMC 2", "CMC 3", "CMC 4", "CMC 5", "CMC 6+"],
+  color: [
+    "White",
+    "Blue",
+    "Black",
+    "Red",
+    "Green",
+    "Multicolored",
+    "Colorless",
+  ],
+  none: [],
 };
 
 const COLOR_ICONS: Record<string, React.ReactNode> = {
-  'White': <GiSun />,
-  'Blue': <GiWaterSplash />,
-  'Black': <GiDreadSkull />,
-  'Red': <GiFireZone />,
-  'Green': <GiAlienFire />,
-  'Multicolored': <GiBlackHoleBolas />,
-  'Colorless': <GiFluffyCloud />, // escolha um ícone para colorless
+  White: <GiSun />,
+  Blue: <GiWaterSplash />,
+  Black: <GiDreadSkull />,
+  Red: <GiFireZone />,
+  Green: <GiAlienFire />,
+  Multicolored: <GiBlackHoleBolas />,
+  Colorless: <GiFluffyCloud />,
 };
 
-    
-const COLOR_NAMES: Record<string, { icon: React.ReactNode, label: string }> = {
-    'W': { icon: <GiSun />, label: 'White' },
-    'U': { icon: <GiWaterSplash />, label: 'Blue' },
-    'B': { icon: <GiDreadSkull />, label: 'Black' },
-    'R': { icon: <GiFireZone />, label: 'Red' },
-    'G': { icon: <GiAlienFire />, label: 'Green' },
+const COLOR_NAMES: Record<string, { icon: React.ReactNode; label: string }> = {
+  W: { icon: <GiSun />, label: "White" },
+  U: { icon: <GiWaterSplash />, label: "Blue" },
+  B: { icon: <GiDreadSkull />, label: "Black" },
+  R: { icon: <GiFireZone />, label: "Red" },
+  G: { icon: <GiAlienFire />, label: "Green" },
 };
 
-    interface DeckListResponse{
-        deck: Deck;
-        cards: DeckCard[];
-    }
+export default function DeckList() {
+  const [groupBy, setGroupBy] = useState<GroupBy>("type");
+  const [sortBy, setSortBy] = useState<SortBy>("name");
+  const [cards, setCards] = useState<DeckCard[]>([]);
+  const [deck, setDeck] = useState<Deck | null>(null);
+  const [hoveredCard, setHoveredCard] = useState<DeckCard | null>(null);
 
-    const mockDeck: DeckListResponse = {
-        deck: {
-            id: '1',
-            name: 'Sefris',
-            coverImage: sefris,
-            cardsCount: 100,
-            category: 'commander',
-            lastUpdatedAt: '2026-02-01T14:32:00Z',
-        },
-        cards: [
-            {
-                id: 'dc1',
-                cardId: 'c1',
-                name: 'Sefris of the Hidden Ways',
-                quantity: 1,
-                typeLine: 'Legendary Creature - Human Wizard',
-                colors: ['W', 'U', 'B'],
-                cmc: 3,
-                image: sefris,
-                isCommander: true,
-            },
-            {
-                id:'dc2',
-                cardId: 'c2',
-                name: 'Seasoned Dungeoneer',
-                quantity: 1,
-                typeLine: 'Creature -  Human Warrior',
-                colors: ['I', 'W'],
-                cmc: 4,
-                image: seasoned,
-            },
-            {
-                id:'dc3',
-                cardId: 'c3',
-                name: 'Tortured Existence',
-                quantity: 1,
-                typeLine: 'Enchantment',
-                colors: ['B'],
-                cmc: 1,
-                image: tortured,
-            }, 
-            {
-                id: 'dc4',
-                cardId: 'c1',
-                name: 'Sefris of the Hidden Ways',
-                quantity: 1,
-                typeLine: 'Legendary Creature - Human Wizard',
-                colors: ['W', 'U', 'B'],
-                cmc: 3,
-                image: sefris,
-            },
-            {
-                id:'dc5',
-                cardId: 'c2',
-                name: 'Seasoned Dungeoneer',
-                quantity: 1,
-                typeLine: 'Creature -  Human Warrior',
-                colors: ['I', 'W'],
-                cmc: 4,
-                image: seasoned,
-            },
-            {
-                id:'dc6',
-                cardId: 'c3',
-                name: 'Tortured Existence',
-                quantity: 1,
-                typeLine: 'Enchantment',
-                colors: ['B'],
-                cmc: 1,
-                image: tortured,
-            },
-            {
-                id: 'dc7',
-                cardId: 'c1',
-                name: 'Sefris of the Hidden Ways',
-                quantity: 1,
-                typeLine: 'Legendary Creature - Human Wizard',
-                colors: ['W', 'U', 'B'],
-                cmc: 3,
-                image: sefris,
-            },
-            {
-                id:'dc8',
-                cardId: 'c2',
-                name: 'Seasoned Dungeoneer',
-                quantity: 1,
-                typeLine: 'Creature -  Human Warrior',
-                colors: ['I', 'W'],
-                cmc: 4,
-                image: seasoned,
-            },
-            {
-                id:'dc9',
-                cardId: 'c3',
-                name: 'Tortured Existence',
-                quantity: 1,
-                typeLine: 'Enchantment',
-                colors: ['B'],
-                cmc: 1,
-                image: tortured,
-            },
-            {
-                id: 'dc10',
-                cardId: 'c1',
-                name: 'Sefris of the Hidden Ways',
-                quantity: 1,
-                typeLine: 'Legendary Creature - Human Wizard',
-                colors: ['W', 'U', 'B'],
-                cmc: 3,
-                image: sefris,
-            },
-            {
-                id:'dc11',
-                cardId: 'c2',
-                name: 'Seasoned Dungeoneer',
-                quantity: 1,
-                typeLine: 'Creature -  Human Warrior',
-                colors: ['I', 'W'],
-                cmc: 4,
-                image: seasoned,
-            },
-            {
-                id:'dc12',
-                cardId: 'c3',
-                name: 'Tortured Existence',
-                quantity: 1,
-                typeLine: 'Enchantment',
-                colors: ['B'],
-                cmc: 1,
-                image: tortured,
-            },
-            {
-                id: 'dc13',
-                cardId: 'c1',
-                name: 'Sefris of the Hidden Ways',
-                quantity: 1,
-                typeLine: 'Legendary Creature - Human Wizard',
-                colors: ['W', 'U', 'B'],
-                cmc: 3,
-                image: sefris,
-            },
-            {
-                id:'dc14',
-                cardId: 'c2',
-                name: 'Seasoned Dungeoneer',
-                quantity: 1,
-                typeLine: 'Creature -  Human Warrior',
-                colors: ['I', 'W'],
-                cmc: 4,
-                image: seasoned,
-            },
-            {
-                id:'dc15',
-                cardId: 'c3',
-                name: 'Tortured Existence',
-                quantity: 1,
-                typeLine: 'Enchantment',
-                colors: ['B'],
-                cmc: 1,
-                image: tortured,
-            },
-            {
-                id:'dc3',
-                cardId: 'c3',
-                name: 'Tortured Existence',
-                quantity: 1,
-                typeLine: 'Enchantment',
-                colors: ['B'],
-                cmc: 1,
-                image: tortured,
-            }, 
-            {
-                id: 'dc4',
-                cardId: 'c1',
-                name: 'Sefris of the Hidden Ways',
-                quantity: 1,
-                typeLine: 'Legendary Creature - Human Wizard',
-                colors: ['W', 'U', 'B'],
-                cmc: 3,
-                image: sefris,
-            },
-            {
-                id:'dc5',
-                cardId: 'c2',
-                name: 'Seasoned Dungeoneer',
-                quantity: 1,
-                typeLine: 'Creature -  Human Warrior',
-                colors: ['I', 'W'],
-                cmc: 4,
-                image: seasoned,
-            },
-            {
-                id:'dc6',
-                cardId: 'c3',
-                name: 'Tortured Existence',
-                quantity: 1,
-                typeLine: 'Enchantment',
-                colors: ['B'],
-                cmc: 1,
-                image: tortured,
-            },
-            {
-                id: 'dc7',
-                cardId: 'c1',
-                name: 'Sefris of the Hidden Ways',
-                quantity: 1,
-                typeLine: 'Legendary Creature - Human Wizard',
-                colors: ['W', 'U', 'B'],
-                cmc: 3,
-                image: sefris,
-            },
-            {
-                id:'dc8',
-                cardId: 'c2',
-                name: 'Seasoned Dungeoneer',
-                quantity: 1,
-                typeLine: 'Creature -  Human Warrior',
-                colors: ['I', 'W'],
-                cmc: 4,
-                image: seasoned,
-            },
-            {
-                id:'dc9',
-                cardId: 'c3',
-                name: 'Tortured Existence',
-                quantity: 1,
-                typeLine: 'Enchantment',
-                colors: ['B'],
-                cmc: 1,
-                image: tortured,
-            },
-            {
-                id: 'dc10',
-                cardId: 'c1',
-                name: 'Sefris of the Hidden Ways',
-                quantity: 1,
-                typeLine: 'Legendary Creature - Human Wizard',
-                colors: ['W', 'U', 'B'],
-                cmc: 3,
-                image: sefris,
-            },
-            {
-                id:'dc11',
-                cardId: 'c2',
-                name: 'Seasoned Dungeoneer',
-                quantity: 1,
-                typeLine: 'Creature -  Human Warrior',
-                colors: ['I', 'W'],
-                cmc: 4,
-                image: seasoned,
-            },
-            {
-                id:'dc12',
-                cardId: 'c3',
-                name: 'Tortured Existence',
-                quantity: 1,
-                typeLine: 'Enchantment',
-                colors: ['B'],
-                cmc: 1,
-                image: tortured,
-            },
-            {
-                id: 'dc13',
-                cardId: 'c1',
-                name: 'Sefris of the Hidden Ways',
-                quantity: 1,
-                typeLine: 'Legendary Creature - Human Wizard',
-                colors: ['W', 'U', 'B'],
-                cmc: 3,
-                image: sefris,
-            },
-            {
-                id:'dc14',
-                cardId: 'c2',
-                name: 'Seasoned Dungeoneer',
-                quantity: 1,
-                typeLine: 'Creature -  Human Warrior',
-                colors: ['I', 'W'],
-                cmc: 4,
-                image: seasoned,
-            },
-            {
-                id:'dc15',
-                cardId: 'c3',
-                name: 'Tortured Existence',
-                quantity: 1,
-                typeLine: 'Enchantment',
-                colors: ['B'],
-                cmc: 1,
-                image: tortured,
-            },
-            {
-                id:'dc3',
-                cardId: 'c3',
-                name: 'Tortured Existence',
-                quantity: 1,
-                typeLine: 'Enchantment',
-                colors: ['B'],
-                cmc: 1,
-                image: tortured,
-            }, 
-            {
-                id: 'dc4',
-                cardId: 'c1',
-                name: 'Sefris of the Hidden Ways',
-                quantity: 1,
-                typeLine: 'Legendary Creature - Human Wizard',
-                colors: ['W', 'U', 'B'],
-                cmc: 3,
-                image: sefris,
-            },
-            {
-                id:'dc5',
-                cardId: 'c2',
-                name: 'Seasoned Dungeoneer',
-                quantity: 1,
-                typeLine: 'Creature -  Human Warrior',
-                colors: ['I', 'W'],
-                cmc: 4,
-                image: seasoned,
-            },
-            {
-                id:'dc6',
-                cardId: 'c3',
-                name: 'Tortured Existence',
-                quantity: 1,
-                typeLine: 'Enchantment',
-                colors: ['B'],
-                cmc: 1,
-                image: tortured,
-            },
-            {
-                id: 'dc7',
-                cardId: 'c1',
-                name: 'Sefris of the Hidden Ways',
-                quantity: 1,
-                typeLine: 'Legendary Creature - Human Wizard',
-                colors: ['W', 'U', 'B'],
-                cmc: 3,
-                image: sefris,
-            },
-            {
-                id:'dc8',
-                cardId: 'c2',
-                name: 'Seasoned Dungeoneer',
-                quantity: 1,
-                typeLine: 'Creature -  Human Warrior',
-                colors: ['I', 'W'],
-                cmc: 4,
-                image: seasoned,
-            },
-            {
-                id:'dc9',
-                cardId: 'c3',
-                name: 'Tortured Existence',
-                quantity: 1,
-                typeLine: 'Enchantment',
-                colors: ['B'],
-                cmc: 1,
-                image: tortured,
-            },
-            {
-                id: 'dc10',
-                cardId: 'c1',
-                name: 'Sefris of the Hidden Ways',
-                quantity: 1,
-                typeLine: 'Legendary Creature - Human Wizard',
-                colors: ['W', 'U', 'B'],
-                cmc: 3,
-                image: sefris,
-            },
-            {
-                id:'dc11',
-                cardId: 'c2',
-                name: 'Seasoned Dungeoneer',
-                quantity: 1,
-                typeLine: 'Creature -  Human Warrior',
-                colors: ['I', 'W'],
-                cmc: 4,
-                image: seasoned,
-            },
-            {
-                id:'dc12',
-                cardId: 'c3',
-                name: 'Tortured Existence',
-                quantity: 1,
-                typeLine: 'Enchantment',
-                colors: ['B'],
-                cmc: 1,
-                image: tortured,
-            },
-            {
-                id: 'dc13',
-                cardId: 'c1',
-                name: 'Sefris of the Hidden Ways',
-                quantity: 1,
-                typeLine: 'Legendary Creature - Human Wizard',
-                colors: ['W', 'U', 'B'],
-                cmc: 3,
-                image: sefris,
-            },
-            {
-                id:'dc14',
-                cardId: 'c2',
-                name: 'Seasoned Dungeoneer',
-                quantity: 1,
-                typeLine: 'Creature -  Human Warrior',
-                colors: ['I', 'W'],
-                cmc: 4,
-                image: seasoned,
-            },
-            {
-                id:'dc15',
-                cardId: 'c3',
-                name: 'Tortured Existence',
-                quantity: 1,
-                typeLine: 'Enchantment',
-                colors: ['B'],
-                cmc: 1,
-                image: tortured,
-            },
-        ],
-    };
+  const DECK_ID = "ID_DO_DECK";
+  const TOKEN = "SEU_TOKEN";
 
-    
-        function isCommanderCard(card: DeckCard) {
-            return card.typeLine.toLowerCase().includes('legendary') && !card.typeLine.toLowerCase().includes('land');
-        }
-        
-        const commanderCard = mockDeck.cards.find(isCommanderCard) || null;
-
-    export default function DeckList() {
-        const [groupBy, setGroupBy] = useState<GroupBy>('type');
-        const [sortBy, setSortBy] = useState<SortBy>('name');
-        const [cards, setCards] = useState<DeckCard[]>(mockDeck.cards);
-        const [hoveredCardId, setHoveredCardId] = useState<DeckCard | null>(commanderCard);
-
-        function getGroupTotal(cards: DeckCard[]) {
-            return cards.reduce((sum, card) => sum + card.quantity, 0);
-        }
-
-        function getGroupIcon (groupBy: GroupBy, group: string) {
-            if (groupBy === 'type') {
-                const g = group.toLowerCase();
-                if (g.includes('creature')) return <GiBeastEye/>;
-                if (g.includes('sorcery')) return <GiUnfriendlyFire />;
-                if (g.includes('instant')) return <GiFocusedLightning />;
-                if (g.includes('artifact')) return <GiMagicLamp />;
-                if (g.includes('equipment')) return <GiSkullShield />;
-                if (g.includes('enchantment')) return <GiFluffyWing />;
-                return <GiTriforce />;
-            }
-        }
-
-
-const groupedCards = useMemo(() => {
-    const sorted = [...cards].sort((a,b) => {
-        if (sortBy === 'name') return a.name.localeCompare(b.name);
-        if (sortBy === 'cmc') return a.cmc - b.cmc;
-        if (sortBy === 'quantity') return b.quantity - a.quantity;
-        return 0;
+  // Fetch deck
+ const fetchDeck = async () => {
+  try {
+    const res = await fetch(`http://localhost:3000/decks/${DECK_ID}`, {
+      headers: { Authorization: `Bearer ${TOKEN}` },
     });
 
-    if (groupBy === 'none') {
-        return { 'All cards' : sorted };
+    const data: ApiDeck = await res.json();
+    const mapped = mapApiDeckToUI(data);
+
+    setDeck(mapped.deck);
+    setCards(mapped.cards);
+  } catch (err) {
+    console.error("Erro ao carregar deck:", err);
+  }
+};
+
+useEffect(() => {
+  fetchDeck();
+}, []);
+
+  const commanderCard = cards.find((c) => c.isCommander);
+
+  const getGroupIcon = (groupBy: GroupBy, group: string) => {
+    if (groupBy === "type") {
+      const g = group.toLowerCase();
+      if (g.includes("creature")) return <GiBeastEye />;
+      if (g.includes("sorcery")) return <GiUnfriendlyFire />;
+      if (g.includes("instant")) return <GiFocusedLightning />;
+      if (g.includes("artifact")) return <GiMagicLamp />;
+      if (g.includes("equipment")) return <GiSkullShield />;
+      if (g.includes("enchantment")) return <GiFluffyWing />;
+      return <GiTriforce />;
     }
+    return null;
+  };
+
+  const groupedCards = useMemo(() => {
+    const sorted = [...cards].sort((a, b) => {
+      if (sortBy === "name") return a.name.localeCompare(b.name);
+      if (sortBy === "cmc") return a.cmc - b.cmc;
+      if (sortBy === "quantity") return b.quantity - a.quantity;
+      return 0;
+    });
+
+    if (groupBy === "none") return { "All cards": sorted };
 
     return sorted.reduce<Record<string, DeckCard[]>>((acc, card) => {
-        let key = 'Other';
+      let key = "Other";
 
-        if (groupBy === 'type') {
-            const typeLine = card.typeLine.toLowerCase();
-            if (card.isCommander) key = 'Commander';
-            else if (typeLine.includes('creature')) key = 'Creature';
-            else if (typeLine.includes('enchantment')) key = 'Enchantment';
-            else if (typeLine.includes('sorcery')) key = 'Sorcery';
-            else if (typeLine.includes('instant')) key = 'Instant';
-            else if (typeLine.includes('artifact')) key = 'Artifact';
-            else if (typeLine.includes('equipment')) key = 'Equipment';
-            else if (typeLine.includes('land')) key = 'Land';
-            else key = 'Other';
-        }
+      if (groupBy === "type") {
+        const typeLine = card.typeLine.toLowerCase();
+        if (card.isCommander) key = "Commander";
+        else if (typeLine.includes("creature")) key = "Creature";
+        else if (typeLine.includes("enchantment")) key = "Enchantment";
+        else if (typeLine.includes("sorcery")) key = "Sorcery";
+        else if (typeLine.includes("instant")) key = "Instant";
+        else if (typeLine.includes("artifact")) key = "Artifact";
+        else if (typeLine.includes("equipment")) key = "Equipment";
+        else if (typeLine.includes("land")) key = "Land";
+      }
 
-        if (groupBy === 'cmc') {
-            key = `CMC ${card.cmc}`;
-        }
+      if (groupBy === "cmc") {
+        key = card.cmc >= 6 ? "CMC 6+" : `CMC ${card.cmc}`;
+      }
 
-        if (groupBy === 'color') {
-            const realColors = card.colors.filter(c => c !== 'I'); // I = incolor
-            if (realColors.length === 0) {
-                key = 'Colorless';
-            } else if (realColors.length === 1) {
-                key = COLOR_NAMES[realColors[0]]?.label || realColors[0];
-            } else {
-                key = 'Multicolored';
-            }
-        }
+      if (groupBy === "color") {
+        const realColors = card.colors;
+        if (realColors.length === 0) key = "Colorless";
+        else if (realColors.length === 1)
+          key = COLOR_NAMES[realColors[0]]?.label || realColors[0];
+        else key = "Multicolored";
+      }
 
-        acc[key] = acc[key] || [];
-        acc[key].push(card);
-
-        return acc;
+      acc[key] = acc[key] || [];
+      acc[key].push(card);
+      return acc;
     }, {});
-}, [cards, groupBy, sortBy]);
+  }, [cards, groupBy, sortBy]);
 
-    function updateQuantity(deckCardId: string, delta:number) {
-        setCards((prev) =>
-        prev
-            .map((c) =>
-                c.id === deckCardId
-                ? { ...c, quantity: c.quantity + delta }
-                : c
-            )
-            .filter((c) => c.quantity > 0)
-        );
-    }
+  function getGroupTotal(cards: DeckCard[]) {
+    return cards.reduce((sum, card) => sum + card.quantity, 0);
+  }
 
-    return (
-  <div className="decklist-page">
-    {/* Header */}
-    <DeckHeader deck={mockDeck.deck} />
+  // Atualiza quantidade no backend
+async function updateQuantity(deckCardId: string, newQuantity: number) {
+  try {
+    const card = cards.find((c) => c.id === deckCardId);
+    if (!card) return;
 
-    {/* Layout principal */}
-    <div className="decklist-layout">
-      
-      {/* Preview fixo à esquerda */}
-      <aside className="hover-preview">
-        {hoveredCardId ? (
-          <img
-            src={hoveredCardId.image}
-            alt={hoveredCardId.name}
-          />
-        ) : (
-          <div className="hover-preview-placeholder">
-            <span>Hover over a card to preview</span>
-          </div>
-        )}
-      </aside>
+    const res = await fetch(
+      `http://localhost:3000/decks/${DECK_ID}/cards/${card.cardId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${TOKEN}`,
+        },
+        body: JSON.stringify({ quantity: newQuantity }),
+      }
+    );
 
-      {/* Conteúdo da direita */}
-      <div className="decklist-content">
-        
-        {/* Controls */}
-        <section className="deck-controls">
-          <select
-            value={groupBy}
-            onChange={(e) => setGroupBy(e.target.value as GroupBy)}
-          >
-            <option value="type">Group By Type</option>
-            <option value="cmc">Group By CMC</option>
-            <option value="color">Group By Color</option>
-            <option value="none">No Group</option>
-          </select>
+    if (!res.ok) throw new Error("Erro ao atualizar");
 
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as SortBy)}
-          >
-            <option value="name">Sort by Name</option>
-            <option value="cmc">Sort by CMC</option>
-            <option value="quantity">Sort by Quantity</option>
-          </select>
-        </section>
+    // ✅ AQUI está o que você perguntou
+    await fetchDeck();
 
-        {/* Deck List */}
-        <section className="deck-groups">
-            {( GROUP_ORDER[groupBy].length ? GROUP_ORDER[groupBy] : Object.keys(groupedCards)).filter(group => groupedCards[group]).map((group) => {
-                const cards = groupedCards[group];
-            const cardsPerRow = 6;
-            const overlapOffset = 100;
-            const cardHeight = 280;
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao atualizar carta");
+  }
+}
 
-            const rowsToShow = Math.ceil(cards.length / cardsPerRow);
-            const gridHeight =
-              cardHeight + (rowsToShow - 1) * overlapOffset;
+  const allGroups = [
+    ...(GROUP_ORDER[groupBy].length ? GROUP_ORDER[groupBy] : []),
+    ...Object.keys(groupedCards),
+  ]
+    .filter((v, i, a) => a.indexOf(v) === i)
+    .filter((group) => groupedCards[group]);
 
-            return (
-              <div key={group} className="deck-group">
-                <h2 className="deck-group-title">
-                    {groupBy === 'color' ? (
-                        <>
-                            {COLOR_ICONS[group] /* icon correto baseado no label */}
-                                <span> {group} </span>
-                        </>
+  return (
+    <div className="decklist-page">
+      {deck && <DeckHeader deck={deck} />}
+      <div className="decklist-layout">
+        <aside className="hover-preview">
+          {(hoveredCard ?? commanderCard) ? (
+            <img
+              src={(hoveredCard ?? commanderCard)?.image}
+              alt={(hoveredCard ?? commanderCard)?.name}
+            />
+          ) : (
+            <div className="hover-preview-placeholder">
+              <span>Passe o mouse sobre o card para um preview</span>
+            </div>
+          )}
+        </aside>
+
+        <div className="decklist-content">
+          <section className="deck-controls">
+            <select
+              value={groupBy}
+              onChange={(e) => setGroupBy(e.target.value as GroupBy)}
+            >
+              <option value="type">Group By Type</option>
+              <option value="cmc">Group By CMC</option>
+              <option value="color">Group By Color</option>
+              <option value="none">No Group</option>
+            </select>
+
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortBy)}
+            >
+              <option value="name">Sort by Name</option>
+              <option value="cmc">Sort by CMC</option>
+              <option value="quantity">Sort by Quantity</option>
+            </select>
+          </section>
+
+          <section className="deck-groups">
+            {allGroups.map((group) => {
+              const groupCards = groupedCards[group];
+              if (!groupCards) return null;
+
+              const cardsPerRow = 6;
+              const overlapOffset = 100;
+              const cardHeight = 280;
+              const rowsToShow = Math.ceil(groupCards.length / cardsPerRow);
+              const gridHeight = cardHeight + (rowsToShow - 1) * overlapOffset;
+
+              return (
+                <div key={group} className="deck-group">
+                  <h2 className="deck-group-title">
+                    {groupBy === "color" ? (
+                      <>
+                        {COLOR_ICONS[group]} <span> {group} </span>
+                      </>
                     ) : (
-                        <>
-                            {getGroupIcon(groupBy, group)}
-                                <span> {group} </span>
-                        </>
-                        )}
+                      <>
+                        {getGroupIcon(groupBy, group)} <span> {group} </span>
+                      </>
+                    )}
                     <span className="deck-group-count">
-                        ({getGroupTotal(cards)})
+                      ({getGroupTotal(groupCards)})
                     </span>
-                </h2>
+                  </h2>
 
-                <div
-                  className="card-grid"
-                  style={{ height: gridHeight }}
-                >
-                  {cards.map((card, index) => {
-                    const rowIndex = Math.floor(index / cardsPerRow);
-                    const colIndex = index % cardsPerRow;
+                  <div className="card-grid" style={{ height: gridHeight }}>
+                    {groupCards.map((card, index) => {
+                      const rowIndex = Math.floor(index / cardsPerRow);
+                      const colIndex = index % cardsPerRow;
+                      const topPosition =
+                        rowIndex > 0 ? rowIndex * overlapOffset + "px" : undefined;
 
-                    const topPosition =
-                      rowIndex > 0
-                        ? rowIndex * overlapOffset + "px"
-                        : undefined;
-
-                    return (
-                      <div
-                        key={card.id + "_" + index}
-                        className="deck-card"
-                        style={{
-                          left: colIndex * 180 + "px",
-                          top: topPosition,
-                          zIndex: index,
-                        }}
-                        onMouseEnter={() =>
-                          setHoveredCardId(card)
-                        }
-                      >
-                        {card.image && (
-                          <img
-                            src={card.image}
-                            alt={card.name}
-                          />
-                        )}
-
-                        <div className="card-info">
-                          <strong>{card.name}</strong>
-                          <span>CMC {card.cmc}</span>
-
-                          <div className="quantity-controls">
-                            <button
-                              onClick={() =>
-                                updateQuantity(card.id, -1)
-                              }
-                            >
-                              -
-                            </button>
-                            <span>{card.quantity}</span>
-                            <button
-                              onClick={() =>
-                                updateQuantity(card.id, +1)
-                              }
-                            >
-                              +
-                            </button>
+                      return (
+                        <div
+                          key={card.id + "_" + index}
+                          className="deck-card"
+                          style={{
+                            left: colIndex * 180 + "px",
+                            top: topPosition,
+                            zIndex: index,
+                          }}
+                          onMouseEnter={() => setHoveredCard(card)}
+                        >
+                          {card.image && <img src={card.image} alt={card.name} />}
+                          <div className="card-info">
+                            <strong>{card.name}</strong>
+                            <span>CMC {card.cmc}</span>
+                            <div className="quantity-controls">
+                              <button
+                                onClick={() =>
+                                  updateQuantity(card.id, card.quantity - 1)
+                                }
+                              >
+                                -
+                              </button>
+                              <span>{card.quantity}</span>
+                              <button
+                                onClick={() =>
+                                  updateQuantity(card.id, card.quantity + 1)
+                                }
+                              >
+                                +
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </section>
+              );
+            })}
+          </section>
+        </div>
       </div>
     </div>
-  </div>
-);
-
-    }
+  );
+}
