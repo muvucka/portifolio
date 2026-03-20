@@ -11,7 +11,15 @@
             GiMagicLamp, 
             GiSkullShield, 
             GiFluffyWing, 
-            GiTriforce } from "react-icons/gi";
+            GiTriforce,
+            GiFireZone,
+            GiWaterSplash,
+            GiFluffyCloud,
+            GiDreadSkull,
+            GiAlienFire,
+            GiBlackHoleBolas,
+            GiSun,
+            } from "react-icons/gi";
 
     type GroupBy = 'none' | 'type' | 'cmc' | 'color';
     type SortBy = 'name' | 'cmc' | 'quantity';
@@ -25,7 +33,34 @@
         typeLine: string;
         colors: string[];
         cmc: number;
+        isCommander?: boolean;
     }
+
+const GROUP_ORDER: Record<GroupBy, string[]> = {
+    type: ['Commander', 'Creature', 'Sorcery', 'Instant', 'Enchantment', 'Artifact', 'Equipment', 'Land', 'Sideboard'],
+    cmc: ['CMC 0', 'CMC 1', 'CMC 2', 'CMC 3', 'CMC 4', 'CMC 5', 'CMC 6+'],
+    color: ['White', 'Blue', 'Black', 'Red', 'Green', 'Multicolored', 'Colorless'],
+    none: [],
+};
+
+const COLOR_ICONS: Record<string, React.ReactNode> = {
+  'White': <GiSun />,
+  'Blue': <GiWaterSplash />,
+  'Black': <GiDreadSkull />,
+  'Red': <GiFireZone />,
+  'Green': <GiAlienFire />,
+  'Multicolored': <GiBlackHoleBolas />,
+  'Colorless': <GiFluffyCloud />, // escolha um ícone para colorless
+};
+
+    
+const COLOR_NAMES: Record<string, { icon: React.ReactNode, label: string }> = {
+    'W': { icon: <GiSun />, label: 'White' },
+    'U': { icon: <GiWaterSplash />, label: 'Blue' },
+    'B': { icon: <GiDreadSkull />, label: 'Black' },
+    'R': { icon: <GiFireZone />, label: 'Red' },
+    'G': { icon: <GiAlienFire />, label: 'Green' },
+};
 
     interface DeckListResponse{
         deck: Deck;
@@ -51,6 +86,7 @@
                 colors: ['W', 'U', 'B'],
                 cmc: 3,
                 image: sefris,
+                isCommander: true,
             },
             {
                 id:'dc2',
@@ -455,10 +491,18 @@
         ],
     };
 
+    
+        function isCommanderCard(card: DeckCard) {
+            return card.typeLine.toLowerCase().includes('legendary') && !card.typeLine.toLowerCase().includes('land');
+        }
+        
+        const commanderCard = mockDeck.cards.find(isCommanderCard) || null;
+
     export default function DeckList() {
         const [groupBy, setGroupBy] = useState<GroupBy>('type');
         const [sortBy, setSortBy] = useState<SortBy>('name');
         const [cards, setCards] = useState<DeckCard[]>(mockDeck.cards);
+        const [hoveredCardId, setHoveredCardId] = useState<DeckCard | null>(commanderCard);
 
         function getGroupTotal(cards: DeckCard[]) {
             return cards.reduce((sum, card) => sum + card.quantity, 0);
@@ -478,47 +522,55 @@
         }
 
 
-    const groupedCards = useMemo(() => {
-        const sorted = [...cards].sort((a,b) => {
-            if (sortBy === 'name') return a.name.localeCompare(b.name);
-            if (sortBy === 'cmc') return a.cmc - b.cmc;
-            if (sortBy === 'quantity') return b.quantity - a.quantity;
-            return 0;
-        });
+const groupedCards = useMemo(() => {
+    const sorted = [...cards].sort((a,b) => {
+        if (sortBy === 'name') return a.name.localeCompare(b.name);
+        if (sortBy === 'cmc') return a.cmc - b.cmc;
+        if (sortBy === 'quantity') return b.quantity - a.quantity;
+        return 0;
+    });
 
-        if (groupBy === 'none') {
-            return {
-                'All cards' : sorted,
-            };
+    if (groupBy === 'none') {
+        return { 'All cards' : sorted };
+    }
+
+    return sorted.reduce<Record<string, DeckCard[]>>((acc, card) => {
+        let key = 'Other';
+
+        if (groupBy === 'type') {
+            const typeLine = card.typeLine.toLowerCase();
+            if (card.isCommander) key = 'Commander';
+            else if (typeLine.includes('creature')) key = 'Creature';
+            else if (typeLine.includes('enchantment')) key = 'Enchantment';
+            else if (typeLine.includes('sorcery')) key = 'Sorcery';
+            else if (typeLine.includes('instant')) key = 'Instant';
+            else if (typeLine.includes('artifact')) key = 'Artifact';
+            else if (typeLine.includes('equipment')) key = 'Equipment';
+            else if (typeLine.includes('land')) key = 'Land';
+            else key = 'Other';
         }
 
-        return sorted.reduce<Record<string, DeckCard[]>>((acc, card) => {
-            let key = 'Other';
+        if (groupBy === 'cmc') {
+            key = `CMC ${card.cmc}`;
+        }
 
-            if (groupBy === 'type') 
-                {
-                const typeLine = card.typeLine.toLowerCase(); // case insensitive
-                    if (typeLine.includes('creature')) key = 'Creature';
-                        else if (typeLine.includes('enchantment')) key = 'Enchantment';
-                            else if (typeLine.includes('sorcery')) key = 'Sorcery';
-                                else if (typeLine.includes('instant')) key = 'Instant';
-                                    else if (typeLine.includes('artifact')) key = 'Artifact';
-                                        else if (typeLine.includes('equipment')) key = 'Equipment';
-                                            else if (typeLine.includes('land')) key = 'Land';
-                                                else key = 'Other';
-                }
-            if (groupBy === 'cmc') {
-                key = `CMC ${card.cmc}`;
+        if (groupBy === 'color') {
+            const realColors = card.colors.filter(c => c !== 'I'); // I = incolor
+            if (realColors.length === 0) {
+                key = 'Colorless';
+            } else if (realColors.length === 1) {
+                key = COLOR_NAMES[realColors[0]]?.label || realColors[0];
+            } else {
+                key = 'Multicolored';
             }
-            if (groupBy === 'color'){
-                key = card.colors.length ? card.colors.join(', ') : 'Colorless';
-            }
+        }
 
-            acc[key] = acc[key] || [];
-            acc[key].push(card);
-            return acc;
-        }, {});
-    }, [cards, groupBy, sortBy]);
+        acc[key] = acc[key] || [];
+        acc[key].push(card);
+
+        return acc;
+    }, {});
+}, [cards, groupBy, sortBy]);
 
     function updateQuantity(deckCardId: string, delta:number) {
         setCards((prev) =>
@@ -533,95 +585,149 @@
     }
 
     return (
-        <div className='decklist-page'>
-            {/* Header */}
-            <DeckHeader deck={mockDeck.deck}/> 
+  <div className="decklist-page">
+    {/* Header */}
+    <DeckHeader deck={mockDeck.deck} />
 
-            {/* Controls */}
-            <section className='deck-controls'>
-                <select value={groupBy} onChange={(e) => setGroupBy(e.target.value as GroupBy)}>
-                    <option value='type'>Group By Type</option>
-                    <option value='cmc'>Group By CMC</option>
-                    <option value='color'>Group By Color</option>
-                    <option value='none'>No Group</option>
-                </select>
+    {/* Layout principal */}
+    <div className="decklist-layout">
+      
+      {/* Preview fixo à esquerda */}
+      <aside className="hover-preview">
+        {hoveredCardId ? (
+          <img
+            src={hoveredCardId.image}
+            alt={hoveredCardId.name}
+          />
+        ) : (
+          <div className="hover-preview-placeholder">
+            <span>Hover over a card to preview</span>
+          </div>
+        )}
+      </aside>
 
-                <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}>
-                    <option value='name'>Sort by Name</option>
-                    <option value='cmc'>Sort by CMC</option>
-                    <option value='quantity'>Sort by Quantity</option>
-                </select>
-            </section>
-            
-            {/* Deck List */}
-        <section className='deck-groups'>
-  {Object.entries(groupedCards).map(([group, cards]) => {
+      {/* Conteúdo da direita */}
+      <div className="decklist-content">
+        
+        {/* Controls */}
+        <section className="deck-controls">
+          <select
+            value={groupBy}
+            onChange={(e) => setGroupBy(e.target.value as GroupBy)}
+          >
+            <option value="type">Group By Type</option>
+            <option value="cmc">Group By CMC</option>
+            <option value="color">Group By Color</option>
+            <option value="none">No Group</option>
+          </select>
 
-    const cardsPerRow = 6;
-    const overlapOffset = 100;
-    const cardHeight = 280;
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortBy)}
+          >
+            <option value="name">Sort by Name</option>
+            <option value="cmc">Sort by CMC</option>
+            <option value="quantity">Sort by Quantity</option>
+          </select>
+        </section>
 
-    const rowsToShow = Math.ceil(cards.length / cardsPerRow);
-    const gridHeight = cardHeight + (rowsToShow - 1) * overlapOffset;
+        {/* Deck List */}
+        <section className="deck-groups">
+            {( GROUP_ORDER[groupBy].length ? GROUP_ORDER[groupBy] : Object.keys(groupedCards)).filter(group => groupedCards[group]).map((group) => {
+                const cards = groupedCards[group];
+            const cardsPerRow = 6;
+            const overlapOffset = 100;
+            const cardHeight = 280;
 
-    return (
-      <div key={group} className='deck-group'>
-        <h2 className="deck-group-title">
-          {getGroupIcon(groupBy, group)}
-          <span> {group} </span>
-          <span className="deck-group-count">
-            ({getGroupTotal(cards)})
-          </span>
-        </h2>
-
-        <div
-          className='card-grid'
-          style={{ height: gridHeight }}
-        >
-          {cards.map(function(card, index) {
-
-            const rowIndex = Math.floor(index / cardsPerRow);
-            const colIndex = index % cardsPerRow;
-
-            let topPosition;
-            if (rowIndex > 0) {
-              topPosition = rowIndex * overlapOffset + "px";
-            } else {
-              topPosition = undefined;
-            }
-
-            const zIndexValue = index;
+            const rowsToShow = Math.ceil(cards.length / cardsPerRow);
+            const gridHeight =
+              cardHeight + (rowsToShow - 1) * overlapOffset;
 
             return (
-              <div
-                key={card.id + "_" + index}
-                className='deck-card'
-                style={{
-                  left: colIndex * 180 + 'px',
-                  top: topPosition,
-                  zIndex: zIndexValue
-                }}
-              >
-                {card.image ? <img src={card.image} alt={card.name} /> : null}
+              <div key={group} className="deck-group">
+                <h2 className="deck-group-title">
+                    {groupBy === 'color' ? (
+                        <>
+                            {COLOR_ICONS[group] /* icon correto baseado no label */}
+                                <span> {group} </span>
+                        </>
+                    ) : (
+                        <>
+                            {getGroupIcon(groupBy, group)}
+                                <span> {group} </span>
+                        </>
+                        )}
+                    <span className="deck-group-count">
+                        ({getGroupTotal(cards)})
+                    </span>
+                </h2>
 
-                <div className='card-info'>
-                  <strong>{card.name}</strong>
-                  <span>CMC {card.cmc}</span>
+                <div
+                  className="card-grid"
+                  style={{ height: gridHeight }}
+                >
+                  {cards.map((card, index) => {
+                    const rowIndex = Math.floor(index / cardsPerRow);
+                    const colIndex = index % cardsPerRow;
 
-                  <div className='quantity-controls'>
-                    <button onClick={() => updateQuantity(card.id, -1)}>-</button>
-                    <span>{card.quantity}</span>
-                    <button onClick={() => updateQuantity(card.id, +1)}>+</button>
-                  </div>
+                    const topPosition =
+                      rowIndex > 0
+                        ? rowIndex * overlapOffset + "px"
+                        : undefined;
+
+                    return (
+                      <div
+                        key={card.id + "_" + index}
+                        className="deck-card"
+                        style={{
+                          left: colIndex * 180 + "px",
+                          top: topPosition,
+                          zIndex: index,
+                        }}
+                        onMouseEnter={() =>
+                          setHoveredCardId(card)
+                        }
+                      >
+                        {card.image && (
+                          <img
+                            src={card.image}
+                            alt={card.name}
+                          />
+                        )}
+
+                        <div className="card-info">
+                          <strong>{card.name}</strong>
+                          <span>CMC {card.cmc}</span>
+
+                          <div className="quantity-controls">
+                            <button
+                              onClick={() =>
+                                updateQuantity(card.id, -1)
+                              }
+                            >
+                              -
+                            </button>
+                            <span>{card.quantity}</span>
+                            <button
+                              onClick={() =>
+                                updateQuantity(card.id, +1)
+                              }
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             );
           })}
-        </div>
-      </div>
-    );
-  })}
         </section>
-        </div>
-    );
+      </div>
+    </div>
+  </div>
+);
+
     }

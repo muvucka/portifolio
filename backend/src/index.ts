@@ -1,7 +1,7 @@
-const app = require('./server');
+import app from "./app.js";
 
-const port = process.argv[2] || 7070;
+const PORT = 3000;
 
-app.listen(port, () => {
-  console.log(`Servidor rodando na porta ${port}`);
+app.listen(PORT, () => {
+  console.log(`Server rodando em http://localhost:${PORT}`);
 });
