@@ -9,18 +9,27 @@ export default function Home() {
   const navigate = useNavigate();
   const [decks, setDecks] = useState<Deck[]>([]);
 
-  const TOKEN = "SEU_TOKEN";
-
   async function fetchDecks() {
     try {
+      const TOKEN = localStorage.getItem("token");
+      console.log("Token que será enviado:", TOKEN);
+
+      if (!TOKEN) {
+        console.error("Usuário não logado ou token ausente");
+        return;
+      }
+
       const res = await fetch("http://localhost:3000/decks", {
         headers: {
           Authorization: `Bearer ${TOKEN}`,
+          "Content-Type": "application/json",
         },
       });
 
+      console.log("Status da resposta:", res.status, res.statusText);
+
       if (!res.ok) {
-        throw new Error("Erro ao buscar decks");
+        throw new Error(`Erro ao buscar decks: ${res.status} ${res.statusText}`);
       }
 
       const data = await res.json();
@@ -30,7 +39,6 @@ export default function Home() {
     }
   }
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     fetchDecks();
   }, []);

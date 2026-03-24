@@ -22,14 +22,20 @@ function Login() {
       });
 
       const data = await res.json();
+      console.log("Resposta do backend:", data); // ✅ debug do token
 
       if (!res.ok) {
         throw new Error(data.error || "Erro ao logar");
       }
 
-      // 👉 depois você vai salvar o token aqui
-       localStorage.setItem("token", data.token);
+      // ✅ salva o token no localStorage
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);      // se você quiser guardar o refresh
+      console.log("Token salvo no localStorage:", localStorage.getItem("accessToken"));
+      window.dispatchEvent(new Event("login")); // ⚡️ evento customizado
+      
 
+      // ✅ redireciona para a home
       navigate("/home");
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -42,49 +48,48 @@ function Login() {
 
   return (
     <div className="login-page">
-
-      {/* ✅ corrigido */}
       <button
         className="register-button"
         onClick={() => navigate("/register")}
       >
         Inscrever-se
       </button>
+
       <div className="center-box">
         <img src="/beholder.svg" alt="Beholder" width={50} height={80} />
         <h1>Olá de novo</h1>
-      {/* ✅ corrigido */}
-      <form className="login-card" onSubmit={handleLogin}>
-        <div>
-          <h5>
-            Entre no NAGO com seu email e senha, ou crie uma conta
-          </h5>
 
-          <input
-            type="email"
-            placeholder="Entre com seu email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+        <form className="login-card" onSubmit={handleLogin}>
+          <div>
+            <h5>Entre no NAGO com seu email e senha, ou crie uma conta</h5>
 
-          <input
-            type="password"
-            placeholder="Entre com sua senha"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
+            <input
+              type="email"
+              placeholder="Entre com seu email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
 
-        <div>
-          <button type="submit">Entrar</button>
-        </div>
+            <input
+              type="password"
+              placeholder="Entre com sua senha"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
 
-        <div className="icons">
-          <GiDiceFire /> <h5>Sonw</h5>
-        </div>
-      </form>
+          <div>
+            <button type="submit">Entrar</button>
+          </div>
+
+          <div className="icons">
+            <GiDiceFire /> <h5>Sonw</h5>
+          </div>
+        </form>
       </div>
-      </div>
+    </div>
   );
 }
 

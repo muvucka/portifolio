@@ -7,13 +7,12 @@ export default function Init() {
   const [precons, setPrecons] = useState<ApiSetItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const preconsRef = useRef<HTMLDivElement>(null);
-  const setsRef = useRef<HTMLDivElement>(null);
+  const preconsRef = useRef<HTMLDivElement | null>(null);
+  const setsRef = useRef<HTMLDivElement | null>(null);
 
   const [preconsPage, setPreconsPage] = useState(1);
   const [setsPage, setSetsPage] = useState(1);
 
-  // Controle visibilidade das setas
   const [preconsCanScrollLeft, setPreconsCanScrollLeft] = useState(false);
   const [preconsCanScrollRight, setPreconsCanScrollRight] = useState(false);
   const [setsCanScrollLeft, setSetsCanScrollLeft] = useState(false);
@@ -24,12 +23,30 @@ export default function Init() {
   useEffect(() => {
     async function fetchDiscover() {
       try {
-        const res = await fetch("http://localhost:3000/discover");
-        if (!res.ok) throw new Error("Erro ao buscar discover");
+        const token = localStorage.getItem("accessToken");
+        if (!token) throw new Error("Usuário não está logado");
+
+        const res = await fetch("http://localhost:3000/decks/discover", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error(`Erro ao buscar discover: ${res.status} ${res.statusText}`);
+        }
+
         const data: DiscoverResponse = await res.json();
+
+        if (!data || !data.precons || !data.sets) {
+          throw new Error("Resposta inválida do backend");
+        }
+
         setPrecons(data.precons);
         setSets(data.sets);
-      } catch (err) {
+
+      } catch (err: unknown) {
         console.error("Erro ao buscar discover:", err);
       } finally {
         setLoading(false);
@@ -37,10 +54,10 @@ export default function Init() {
         updateScrollButtons(setsRef, setSetsCanScrollLeft, setSetsCanScrollRight);
       }
     }
+
     fetchDiscover();
   }, []);
 
-  // Lazy load horizontal
   function handleScroll(
     ref: React.RefObject<HTMLDivElement | null>,
     page: number,
@@ -48,25 +65,30 @@ export default function Init() {
     totalItems: number
   ) {
     if (!ref.current) return;
+
     const { scrollLeft, scrollWidth, clientWidth } = ref.current;
 
     if (scrollLeft + clientWidth >= scrollWidth - 50 && page * ITEMS_PER_PAGE < totalItems) {
       setPage(page + 1);
     }
 
-    updateScrollButtons(ref, ref === preconsRef ? setPreconsCanScrollLeft : setSetsCanScrollLeft,
+    updateScrollButtons(
+      ref,
+      ref === preconsRef ? setPreconsCanScrollLeft : setSetsCanScrollLeft,
       ref === preconsRef ? setPreconsCanScrollRight : setSetsCanScrollRight
     );
   }
 
-  // Scroll manual via setas
   function scroll(ref: React.RefObject<HTMLDivElement | null>, offset: number) {
-    if (ref.current) {
-      ref.current.scrollBy({ left: offset, behavior: "smooth" });
-      updateScrollButtons(ref, ref === preconsRef ? setPreconsCanScrollLeft : setSetsCanScrollLeft,
-        ref === preconsRef ? setPreconsCanScrollRight : setSetsCanScrollRight
-      );
-    }
+    if (!ref.current) return;
+
+    ref.current.scrollBy({ left: offset, behavior: "smooth" });
+
+    updateScrollButtons(
+      ref,
+      ref === preconsRef ? setPreconsCanScrollLeft : setSetsCanScrollLeft,
+      ref === preconsRef ? setPreconsCanScrollRight : setSetsCanScrollRight
+    );
   }
 
   function updateScrollButtons(
@@ -74,7 +96,12 @@ export default function Init() {
     setLeft: (v: boolean) => void,
     setRight: (v: boolean) => void
   ) {
-    if (!ref.current) return;
+    if (!ref.current) {
+      setLeft(false);
+      setRight(false);
+      return;
+    }
+
     const { scrollLeft, scrollWidth, clientWidth } = ref.current;
     setLeft(scrollLeft > 0);
     setRight(scrollLeft + clientWidth < scrollWidth);
@@ -103,10 +130,7 @@ export default function Init() {
             >
               {precons.slice(0, preconsPage * ITEMS_PER_PAGE).map((precon) => (
                 <div key={precon.id} className="precon-card">
-                  <img
-                    src={precon.iconSvg ?? "/placeholder-card.png"}
-                    alt={precon.name}
-                  />
+                  <img src={precon.iconSvg ?? "/placeholder-card.png"} alt={precon.name} />
                   <p>{precon.name}</p>
                 </div>
               ))}
@@ -135,10 +159,7 @@ export default function Init() {
             >
               {sets.slice(0, setsPage * ITEMS_PER_PAGE).map((set) => (
                 <div key={set.id} className="set-card">
-                  <img
-                    src={set.iconSvg ?? "/placeholder-set.png"}
-                    alt={set.name}
-                  />
+                  <img src={set.iconSvg ?? "/placeholder-set.png"} alt={set.name} />
                   <p>{set.name}</p>
                 </div>
               ))}
