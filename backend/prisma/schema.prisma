@@ -44,7 +44,7 @@ model Card {
 
   commanderDeck Deck? @relation("DeckCommander")
 
-  set Set @relation(fields: [setCode], references: [name])
+  set Set @relation(fields: [setCode], references: [code])
 
   // Relacionamentos para listas
   colorIdentities CardColorIdentity[]
@@ -81,12 +81,19 @@ model CardColor {
 
 model Set {
   id        String    @id @default(uuid())
-  name      String    @unique
+  code      String    @unique // 👈 ESSENCIAL (ex: "cmm")
+  name      String
+  type      String // commander, expansion, etc
+  iconSvg   String? // 👈 imagem do set
   releaseAt DateTime?
-  cards     Card[]
+
+  cards Card[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([releaseAt])
+  @@index([type])
 }
 
 model Deck {

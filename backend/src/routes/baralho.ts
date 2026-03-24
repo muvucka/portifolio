@@ -16,6 +16,7 @@ import type {
   UpdateDeckDTO,
   ImportDeckDTO,
 } from "../types/deckTypes.js";
+import prisma from "../db.js";
 
 const router = Router();
 
@@ -144,5 +145,27 @@ router.post(
     }
   }
 );
+
+router.get("/discover", authMiddleware, async (req, res) => {
+  try {
+    const latestSets = await prisma.set.findMany({
+      orderBy: { releaseAt: "desc" },
+      take: 10,
+    });
+
+    const precons = await prisma.set.findMany({
+      where: { type: "commander" },
+      orderBy: { releaseAt: "desc" },
+      take: 10,
+    });
+
+    res.json({
+      sets: latestSets,
+      precons,
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao buscar discover" });
+  }
+});
 
 export default router;

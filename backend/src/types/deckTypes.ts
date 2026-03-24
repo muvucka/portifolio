@@ -35,3 +35,20 @@ export interface ImportDeckDTO {
   commanderName: string;
   decklist: string;
 }
+
+// types/CardTypes.ts
+export interface ScryfallCardResponse {
+  id: string;
+  name: string;
+  type_line: string;
+  cmc: number;
+  image_uris?: {
+    normal?: string;
+    art_crop?: string;
+  };
+  set: string;
+  set_name: string;
+  collector_number: string;
+  colors?: string[];
+  color_identity?: string[];
+}
