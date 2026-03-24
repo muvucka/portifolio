@@ -1,0 +1,111 @@
+/* pages/Init.css */
+.init-page {
+  width: 100vw; 
+  min-height: 100vh;
+  padding: 24px;
+  background-color: #121212;
+  color: #fff;
+  font-family: "Arial", sans-serif;
+  padding-top: 80px;   
+}
+
+.content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: none;
+}
+
+.discover-section {
+  margin-bottom: 40px;
+}
+
+.discover-section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 16px;
+  font-weight: bold;
+}
+
+.carousel-wrapper {
+  position: relative;
+}
+
+.card-list {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.scroll-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0,0,0,0.5);
+  border: none;
+  color: white;
+  font-size: 2rem;
+  padding: 0 12px;
+  cursor: pointer;
+  border-radius: 50%;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.carousel-wrapper:hover .scroll-btn {
+  opacity: 1;
+}
+
+.scroll-btn:hover {
+  background-color: rgba(0,0,0,0.8);
+}
+
+.scroll-btn.left {
+  left: 0;
+}
+
+.scroll-btn.right {
+  right: 0;
+}
+
+.card-list::-webkit-scrollbar {
+  height: 8px;
+}
+
+.card-list::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.precon-card img {
+  width: 150px;
+  height: 150px;
+  border-radius: 8px;
+  object-fit: cover;
+  transition: transform 0.2s;
+}
+
+.set-card img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  transition: transform 0.2s;
+}
+
+.precon-card p,
+.set-card p {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.precon-card:hover img,
+.set-card:hover img {
+  transform: scale(1.08);
+  cursor: pointer;
+}
+
+

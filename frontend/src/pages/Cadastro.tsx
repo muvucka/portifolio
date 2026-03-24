@@ -37,7 +37,7 @@ function Register() {
       }
 
       alert("Conta criada com sucesso!");
-      navigate("/");
+      navigate("/login");
       
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -50,13 +50,12 @@ function Register() {
 
   return (
     <div className="register-page">
-      <div className="top-left-icon">
-        <img src="/beholder.svg" alt="Beholder" width={120} height={120} />
-      </div>
+      <div className="center-register">
+        <img src="/beholder.svg" alt="Beholder" width={50} height={80} />
+          <h1>Se increva e comece a usar o NAGO</h1>
 
       <form className="register-card" onSubmit={handleRegister}>
         <div>
-          <h1>Cadastrar</h1>
           <h5>Crie uma conta nova no NAGO com seu email e senha</h5>
 
           <input
@@ -86,10 +85,11 @@ function Register() {
         </div>
 
         <div className="icons">
-          <GiDiceFire /> <h5>Snow</h5>
+          <GiDiceFire /> <h5>Sonw</h5>
         </div>
       </form>
-    </div>
+      </div>
+      </div>
   );
 }
 

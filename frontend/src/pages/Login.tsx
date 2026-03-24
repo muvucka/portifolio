@@ -42,9 +42,6 @@ function Login() {
 
   return (
     <div className="login-page">
-      <div className="top-left-icon">
-        <img src="/beholder.svg" alt="Beholder" width={120} height={120} />
-      </div>
 
       {/* ✅ corrigido */}
       <button
@@ -53,11 +50,12 @@ function Login() {
       >
         Inscrever-se
       </button>
-
+      <div className="center-box">
+        <img src="/beholder.svg" alt="Beholder" width={50} height={80} />
+        <h1>Olá de novo</h1>
       {/* ✅ corrigido */}
       <form className="login-card" onSubmit={handleLogin}>
         <div>
-          <h1>Entrar</h1>
           <h5>
             Entre no NAGO com seu email e senha, ou crie uma conta
           </h5>
@@ -82,10 +80,11 @@ function Login() {
         </div>
 
         <div className="icons">
-          <GiDiceFire /> <h5>Snow</h5>
+          <GiDiceFire /> <h5>Sonw</h5>
         </div>
       </form>
-    </div>
+      </div>
+      </div>
   );
 }
 
