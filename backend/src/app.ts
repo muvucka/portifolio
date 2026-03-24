@@ -14,7 +14,7 @@ app.use(cors({
 app.use(express.json());
 
 // Rotas de autenticação e decks
-app.use("/auth", authRoutes);
+app.use("/", authRoutes);
 app.use("/decks", deckRoutes);
 
 export default app;

@@ -83,6 +83,7 @@ export async function fetchCardByName(name: string): Promise<CardDTO> {
 // FETCH SETS FROM Scryfall COM LOG
 // =========================
 export async function fetchScryfallSets(): Promise<{ latestSets: SetDTO[]; precons: SetDTO[] }> {
+  // Log para indicar que a API está sendo chamada
   console.log("🌐 Chamando API da Scryfall para buscar sets...");
 
   const setsRes = await fetch("https://api.scryfall.com/sets", {
@@ -92,14 +93,17 @@ export async function fetchScryfallSets(): Promise<{ latestSets: SetDTO[]; preco
     },
   });
 
+  // Log para mostrar a resposta da API
   console.log("📡 Resposta da Scryfall recebida:", setsRes.status, setsRes.statusText);
 
   if (!setsRes.ok) throw new Error("Erro ao buscar sets na Scryfall");
 
   const setsData = (await setsRes.json()) as { data: ScryfallSet[] };
 
+  // Verificação se a resposta é válida
   if (!setsData || !setsData.data) throw new Error("Resposta inválida da Scryfall");
 
+  // Log para mostrar o total de sets recebidos
   console.log("✅ Total de sets recebidos da Scryfall:", setsData.data.length);
 
   const latestSets: SetDTO[] = setsData.data
@@ -115,6 +119,7 @@ export async function fetchScryfallSets(): Promise<{ latestSets: SetDTO[]; preco
 
   const precons: SetDTO[] = latestSets.filter((s) => s.type === "commander").slice(0, 10);
 
+  // Log para mostrar as sets mais recentes e os precons
   console.log("📦 LatestSets:", latestSets.map((s) => s.code));
   console.log("🛡 Precons:", precons.map((s) => s.code));
 

@@ -10,9 +10,9 @@ router.get("/", (req, res) => {
   res.send("Bem-vindo! Faça login em POST /login");
 });
 
-router.post("/register", controller.register);
-router.post("/login", controller.login);
-router.post("/refresh", controller.refresh);
-router.post("/logout", controller.logout);
+router.post("/auth/register", controller.register);
+router.post("/auth/login", controller.login);
+router.post("/auth/refresh", controller.refresh);
+router.post("/auth/logout", controller.logout);
 
 export default router;
