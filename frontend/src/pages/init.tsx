@@ -38,6 +38,7 @@ export default function Init() {
         }
 
         const data: DiscoverResponse = await res.json();
+        console.log("Resposta do backend:", data); // Adiciona este log para depuração
 
         if (!data || !data.precons || !data.sets) {
           throw new Error("Resposta inválida do backend");

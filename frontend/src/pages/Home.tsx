@@ -9,21 +9,16 @@ export default function Home() {
   const navigate = useNavigate();
   const [decks, setDecks] = useState<Deck[]>([]);
 
-  async function fetchDecks() {
+async function fetchDecks() {
     try {
-      const TOKEN = localStorage.getItem("token");
-      console.log("Token que será enviado:", TOKEN);
-
-      if (!TOKEN) {
-        console.error("Usuário não logado ou token ausente");
-        return;
-      }
+          const token = localStorage.getItem("accessToken");
+          if (!token) throw new Error("Usuário não está logado");
 
       const res = await fetch("http://localhost:3000/decks", {
         headers: {
-          Authorization: `Bearer ${TOKEN}`,
-          "Content-Type": "application/json",
-        },
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
       });
 
       console.log("Status da resposta:", res.status, res.statusText);
@@ -33,7 +28,7 @@ export default function Home() {
       }
 
       const data = await res.json();
-      setDecks(mapDeckListToUI(data));
+      setDecks(mapDeckListToUI(data)); // Certifique-se de que 'mapDeckListToUI' está adaptado para seu uso
     } catch (err) {
       console.error("Erro ao carregar decks:", err);
     }
@@ -41,7 +36,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchDecks();
-  }, []);
+  }, []); // Adiciona este log para depuração
 
   return (
     <div className="home">

@@ -1,5 +1,5 @@
-// src/pages/DeckList.tsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { useParams } from "react-router-dom";
 import type { Deck } from "../types/Deck";
 import { DeckHeader } from "../components/DeckHeader";
 import "../pages/DeckList.css";
@@ -81,35 +81,40 @@ const COLOR_NAMES: Record<string, { icon: React.ReactNode; label: string }> = {
 };
 
 export default function DeckList() {
+  const { deckId } = useParams();
+  const token = localStorage.getItem("accessToken");
+
   const [groupBy, setGroupBy] = useState<GroupBy>("type");
   const [sortBy, setSortBy] = useState<SortBy>("name");
   const [cards, setCards] = useState<DeckCard[]>([]);
   const [deck, setDeck] = useState<Deck | null>(null);
   const [hoveredCard, setHoveredCard] = useState<DeckCard | null>(null);
 
-  const DECK_ID = "ID_DO_DECK";
-  const TOKEN = "SEU_TOKEN";
+  // Função fetchDeck com useCallback para garantir que ela não seja recriada a cada renderização
+  const fetchDeck = useCallback(async () => {
+    if (!deckId) {
+      console.error("Deck ID não encontrado");
+      return;
+    }
 
-  // Fetch deck
- const fetchDeck = async () => {
-  try {
-    const res = await fetch(`http://localhost:3000/decks/${DECK_ID}`, {
-      headers: { Authorization: `Bearer ${TOKEN}` },
-    });
+    try {
+      const res = await fetch(`http://localhost:3000/decks/${deckId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    const data: ApiDeck = await res.json();
-    const mapped = mapApiDeckToUI(data);
+      const data: ApiDeck = await res.json();
+      const mapped = mapApiDeckToUI(data);
 
-    setDeck(mapped.deck);
-    setCards(mapped.cards);
-  } catch (err) {
-    console.error("Erro ao carregar deck:", err);
-  }
-};
+      setDeck(mapped.deck);
+      setCards(mapped.cards);
+    } catch (err) {
+      console.error("Erro ao carregar deck:", err);
+    }
+  }, [deckId, token]);  // Dependências agora incluem deckId e token
 
-useEffect(() => {
-  fetchDeck();
-}, []);
+  useEffect(() => {
+    fetchDeck();
+  }, [fetchDeck]); // Use fetchDeck no array de dependências
 
   const commanderCard = cards.find((c) => c.isCommander);
 
@@ -127,6 +132,7 @@ useEffect(() => {
     return null;
   };
 
+  // UseMemo com as dependências corretas
   const groupedCards = useMemo(() => {
     const sorted = [...cards].sort((a, b) => {
       if (sortBy === "name") return a.name.localeCompare(b.name);
@@ -174,34 +180,33 @@ useEffect(() => {
     return cards.reduce((sum, card) => sum + card.quantity, 0);
   }
 
-  // Atualiza quantidade no backend
-async function updateQuantity(deckCardId: string, newQuantity: number) {
-  try {
-    const card = cards.find((c) => c.id === deckCardId);
-    if (!card) return;
+  // Atualiza a quantidade no backend
+  const updateQuantity = async (deckCardId: string, newQuantity: number) => {
+    try {
+      const card = cards.find((c) => c.id === deckCardId);
+      if (!card) return;
 
-    const res = await fetch(
-      `http://localhost:3000/decks/${DECK_ID}/cards/${card.cardId}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${TOKEN}`,
-        },
-        body: JSON.stringify({ quantity: newQuantity }),
-      }
-    );
+      const res = await fetch(
+        `http://localhost:3000/decks/${deckId}/cards/${card.cardId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ quantity: newQuantity }),
+        }
+      );
 
-    if (!res.ok) throw new Error("Erro ao atualizar");
+      if (!res.ok) throw new Error("Erro ao atualizar");
 
-    // ✅ AQUI está o que você perguntou
-    await fetchDeck();
-
-  } catch (err) {
-    console.error(err);
-    alert("Erro ao atualizar carta");
-  }
-}
+      // Chama fetchDeck após atualizar a quantidade
+      await fetchDeck();
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao atualizar carta");
+    }
+  };
 
   const allGroups = [
     ...(GROUP_ORDER[groupBy].length ? GROUP_ORDER[groupBy] : []),
