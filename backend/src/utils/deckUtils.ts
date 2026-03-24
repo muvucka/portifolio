@@ -1,7 +1,4 @@
 // mapDeckToResponse.ts
-
-import { prisma } from '../config/prisma.js';
-
 // Tipos TypeScript
 type Card = {
   id: string;

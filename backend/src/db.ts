@@ -1,10 +1,9 @@
-import { PrismaClient } from "@prisma/client"    // caminho do client gerado
-import { PrismaPg } from "@prisma/adapter-pg"
+// src/db.ts
+import { PrismaClient } from "../prisma/generated/client/index.js";
 
 const prisma = new PrismaClient({
-  adapter: new PrismaPg({
-    connectionString: process.env.DATABASE_URL!,
-  }),
-})
+  // MySQL já funciona por padrão, não precisa de adapter
+  log: ["query", "error"], // opcional, só pra debug
+});
 
-export default prisma
+export default prisma;
