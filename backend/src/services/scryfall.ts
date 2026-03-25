@@ -22,22 +22,36 @@ type CardDTO = {
 // =========================
 // SETS DTO
 // =========================
-export type ScryfallSet = {
+// DTO de resposta do set
+interface Set {
+  object: string;
   id: string;
   code: string;
+  mtgo_code: string | null;
+  arena_code: string | null;
+  tcgplayer_id: number | null;
   name: string;
-  type: string;
+  uri: string;
+  scryfall_uri: string;
   released_at: string;
-  icon_svg_uri: string;
-};
+  set_type: string;
+  card_count: number;
+  printed_size: number | null;
+  digital: boolean;
+  nonfoil_only: boolean;
+  foil_only: boolean;
+  block_code: string | null;
+  block: string | null;
+  parent_set_code: string | null;
+  icon_svg_uri: string | null;
+  search_uri: string;
+}
 
-export type SetDTO = {
-  name: string;
-  code: string;
-  releaseAt: Date;
-  type: string;
-  iconSvg: string;
-};
+interface ScryfallApiResponse {
+  data: Set[];
+  has_more: boolean;
+  next_page: string | null;
+}
 
 // =========================
 // FETCH CARD BY NAME
@@ -82,8 +96,9 @@ export async function fetchCardByName(name: string): Promise<CardDTO> {
 // =========================
 // FETCH SETS FROM Scryfall COM LOG
 // =========================
-export async function fetchScryfallSets(): Promise<{ latestSets: SetDTO[]; precons: SetDTO[] }> {
-  // Log para indicar que a API está sendo chamada
+// Função para buscar sets no Scryfall
+
+export async function fetchScryfallSets() {
   console.log("🌐 Chamando API da Scryfall para buscar sets...");
 
   const setsRes = await fetch("https://api.scryfall.com/sets", {
@@ -93,35 +108,28 @@ export async function fetchScryfallSets(): Promise<{ latestSets: SetDTO[]; preco
     },
   });
 
-  // Log para mostrar a resposta da API
-  console.log("📡 Resposta da Scryfall recebida:", setsRes.status, setsRes.statusText);
-
   if (!setsRes.ok) throw new Error("Erro ao buscar sets na Scryfall");
 
-  const setsData = (await setsRes.json()) as { data: ScryfallSet[] };
+  // Definindo explicitamente o tipo da resposta
+ const setsData = await setsRes.json() as ScryfallApiResponse; // Tipando corretamente a resposta da API
 
-  // Verificação se a resposta é válida
-  if (!setsData || !setsData.data) throw new Error("Resposta inválida da Scryfall");
+  console.log("✅ Dados recebidos da Scryfall:", setsData);
 
-  // Log para mostrar o total de sets recebidos
-  console.log("✅ Total de sets recebidos da Scryfall:", setsData.data.length);
-
-  const latestSets: SetDTO[] = setsData.data
-    .sort((a, b) => new Date(b.released_at).getTime() - new Date(a.released_at).getTime())
+  // Filtrando os 10 sets mais recentes
+  const latestSets = setsData.data
+    .sort((a: Set, b: Set) => new Date(b.released_at).getTime() - new Date(a.released_at).getTime())
     .slice(0, 10)
-    .map((s) => ({
-      name: s.name,
-      code: s.code,
-      releaseAt: new Date(s.released_at),
-      type: s.type,
-      iconSvg: s.icon_svg_uri,
+    .map((set: Set) => ({
+      id: set.id,
+      code: set.code,
+      name: set.name,
+      releaseAt: set.released_at,
+      type: set.set_type,  // Usando o campo 'set_type' para determinar o tipo do set
+      iconSvg: set.icon_svg_uri, // URI do ícone do set
     }));
 
-  const precons: SetDTO[] = latestSets.filter((s) => s.type === "commander").slice(0, 10);
-
-  // Log para mostrar as sets mais recentes e os precons
-  console.log("📦 LatestSets:", latestSets.map((s) => s.code));
-  console.log("🛡 Precons:", precons.map((s) => s.code));
+  // Filtrando os sets do tipo 'commander' (os precons)
+  const precons = latestSets.filter((set) => set.type === 'commander');
 
   return { latestSets, precons };
 }
