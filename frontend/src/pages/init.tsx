@@ -38,14 +38,15 @@ export default function Init() {
         }
 
         const data: DiscoverResponse = await res.json();
-        console.log("Resposta do backend:", data); // Adiciona este log para depuração
+        console.log("Resposta do backend:", data);
 
-        if (!data || !data.precons || !data.sets) {
+        if (!data || !data.latestSets || !data.precons) {
           throw new Error("Resposta inválida do backend");
         }
 
+        // Atualizar o estado com os sets e precons corretamente
         setPrecons(data.precons);
-        setSets(data.sets);
+        setSets(data.latestSets);
 
       } catch (err: unknown) {
         console.error("Erro ao buscar discover:", err);
@@ -131,7 +132,7 @@ export default function Init() {
             >
               {precons.slice(0, preconsPage * ITEMS_PER_PAGE).map((precon) => (
                 <div key={precon.id} className="precon-card">
-                  <img src={precon.iconSvg ?? "/placeholder-card.png"} alt={precon.name} />
+                  <img src={precon.iconSvgUri ?? "/placeholder-card.png"} alt={precon.name} />
                   <p>{precon.name}</p>
                 </div>
               ))}
@@ -160,7 +161,7 @@ export default function Init() {
             >
               {sets.slice(0, setsPage * ITEMS_PER_PAGE).map((set) => (
                 <div key={set.id} className="set-card">
-                  <img src={set.iconSvg ?? "/placeholder-set.png"} alt={set.name} />
+                  <img src={set.iconSvgUri ?? "/placeholder-set.png"} alt={set.name} />
                   <p>{set.name}</p>
                 </div>
               ))}

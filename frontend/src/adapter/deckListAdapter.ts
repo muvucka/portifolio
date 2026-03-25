@@ -12,14 +12,15 @@ export interface ApiDeckListItem {
 // types/Set.ts
 export interface ApiSetItem {
   id: string;
-  name: string;
   code: string;
+  name: string;
+  releaseAt: string;
   type: string;
-  iconSvg?: string | null;
-  releaseAt?: string | null;
+  iconSvgUri: string | null; // Alterado para 'icon_svg_uri'
 }
+
 export interface DiscoverResponse {
-  sets: ApiSetItem[];
+  latestSets: ApiSetItem[];
   precons: ApiSetItem[];
 }
 
@@ -38,6 +39,6 @@ export function mapSetToUI(set: ApiSetItem) {
   return {
     id: set.id,
     name: set.name,
-    image: set.iconSvg,
+    image: set.iconSvgUri ?? "/placeholder-set.png",
   };
 }
