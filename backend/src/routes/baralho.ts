@@ -152,92 +152,20 @@ router.post(
 
 router.get("/discover", async (req, res) => {
   try {
-    console.log("=== /discover called ===");
-
-    // 1️⃣ Busca sets do banco
-    let latestSets = await prisma.set.findMany({
+    const latestSets = await prisma.set.findMany({
       orderBy: { releaseAt: "desc" },
       take: 10,
     });
 
-    let precons = await prisma.set.findMany({
+    const precons = await prisma.set.findMany({
       where: { type: "commander" },
       orderBy: { releaseAt: "desc" },
       take: 10,
     });
 
-    console.log("🏦 Banco atual:", latestSets.length, "latestSets,", precons.length, "precons");
-
-    // 2️⃣ Se não existir nada no banco, chama a API da Scryfall
-    if (latestSets.length === 0 || precons.length === 0) {
-      console.log("📭 Banco vazio ou incompleto. Buscando Scryfall...");
-
-      // Chama a API da Scryfall para pegar os dados
-      const { latestSets: fetchedSets, precons: fetchedPrecons } = await fetchScryfallSets();
-
-      console.log("📥 Dados recebidos da Scryfall:");
-      console.log("  latestSets:", fetchedSets.map((s) => s.code));
-      console.log("  precons:", fetchedPrecons.map((s) => s.code));
-
-      // 3️⃣ Salva os sets no banco de dados
-      for (const set of fetchedSets) {
-        await prisma.set.upsert({
-          where: { code: set.code },  // Garante que o 'code' seja único
-          update: {
-            name: set.name,
-            type: set.type,
-            iconSvg: set.iconSvg ?? null,  // Mapeia para 'iconSvg'
-            releaseAt: new Date(set.releaseAt),
-          },
-          create: {
-            name: set.name,
-            code: set.code,
-            type: set.type,
-            iconSvg: set.iconSvg ?? null,  // Mapeia para 'iconSvg'
-            releaseAt: new Date(set.releaseAt),
-          },
-        });
-      }
-
-      // 4️⃣ Salva os precons no banco de dados
-      for (const precon of fetchedPrecons) {
-        await prisma.set.upsert({
-          where: { code: precon.code },
-          update: {
-            name: precon.name,
-            type: precon.type,
-            iconSvg: precon.iconSvg ?? null,
-            releaseAt: new Date(precon.releaseAt),
-          },
-          create: {
-            name: precon.name,
-            code: precon.code,
-            type: precon.type,
-            iconSvg: precon.iconSvg ?? null,
-            releaseAt: new Date(precon.releaseAt),
-          },
-        });
-      }
-
-      // 5️⃣ Rebusca os sets no banco após salvar
-      latestSets = await prisma.set.findMany({
-        orderBy: { releaseAt: "desc" },
-        take: 10,
-      });
-
-      precons = await prisma.set.findMany({
-        where: { type: "commander" },
-        orderBy: { releaseAt: "desc" },
-        take: 10,
-      });
-
-      console.log("🏦 Banco atualizado após Scryfall:", latestSets.length, "latestSets,", precons.length, "precons");
-    }
-
-    // 6️⃣ Retorna os dados para o frontend
     res.json({
-      latestSets: latestSets,
-      precons: precons,
+      latestSets,
+      precons,
     });
   } catch (err) {
     console.error("❌ Erro no /discover:", err);

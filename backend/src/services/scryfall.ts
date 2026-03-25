@@ -110,26 +110,39 @@ export async function fetchScryfallSets() {
 
   if (!setsRes.ok) throw new Error("Erro ao buscar sets na Scryfall");
 
-  // Definindo explicitamente o tipo da resposta
- const setsData = await setsRes.json() as ScryfallApiResponse; // Tipando corretamente a resposta da API
+  const setsData = await setsRes.json() as ScryfallApiResponse;
 
-  console.log("✅ Dados recebidos da Scryfall:", setsData);
+  const allSets = setsData.data;
 
-  // Filtrando os 10 sets mais recentes
-  const latestSets = setsData.data
-    .sort((a: Set, b: Set) => new Date(b.released_at).getTime() - new Date(a.released_at).getTime())
+  // 🔹 10 sets mais recentes (geral)
+  const latestSets = allSets
+    .filter((set) => set.released_at) // evita null
+    .sort((a, b) =>
+      new Date(b.released_at!).getTime() - new Date(a.released_at!).getTime()
+    )
     .slice(0, 10)
-    .map((set: Set) => ({
-      id: set.id,
-      code: set.code,
-      name: set.name,
-      releaseAt: set.released_at,
-      type: set.set_type,  // Usando o campo 'set_type' para determinar o tipo do set
-      iconSvg: set.icon_svg_uri, // URI do ícone do set
-    }));
+    .map(mapSet);
 
-  // Filtrando os sets do tipo 'commander' (os precons)
-  const precons = latestSets.filter((set) => set.type === 'commander');
+  // 🔹 10 precons (commander) mais recentes
+  const precons = allSets
+    .filter((set) => set.set_type === "commander" && set.released_at)
+    .sort((a, b) =>
+      new Date(b.released_at!).getTime() - new Date(a.released_at!).getTime()
+    )
+    .slice(0, 10)
+    .map(mapSet);
 
   return { latestSets, precons };
+}
+
+// 🔹 helper pra não duplicar código
+function mapSet(set: Set) {
+  return {
+    id: set.id,
+    code: set.code,
+    name: set.name,
+    releaseAt: set.released_at,
+    type: set.set_type,
+    iconSvg: set.icon_svg_uri,
+  };
 }
