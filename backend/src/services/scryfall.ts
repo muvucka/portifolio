@@ -99,7 +99,7 @@ export async function fetchCardByName(name: string): Promise<CardDTO> {
 // Função para buscar sets no Scryfall
 
 export async function fetchScryfallSets() {
-  console.log("🌐 Chamando API da Scryfall para buscar sets...");
+  console.log("Chamando API da Scryfall para buscar sets...");
 
   const setsRes = await fetch("https://api.scryfall.com/sets", {
     headers: {

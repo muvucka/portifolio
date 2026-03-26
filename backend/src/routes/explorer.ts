@@ -8,7 +8,7 @@ const router = Router();
  */
 async function getCommanderCardImage(setCode: string): Promise<string | undefined> {
   try {
-    const searchUri = `https://api.scryfall.com/cards/search?order=set&q=e:${setCode}&unique=prints`;
+    const searchUri = `https://api.scryfall.com/cards/search?order=set&q=set:${setCode}&unique=prints`;
     const res = await fetch(searchUri);
 
     interface ScryfallCard {
@@ -25,7 +25,7 @@ async function getCommanderCardImage(setCode: string): Promise<string | undefine
     const data = (await res.json()) as ScryfallResponse;
 
     const commanderCard = data.data.find((card) =>
-      card.type_line.toLowerCase().includes("commander")
+      card.type_line.toLowerCase().includes("legendary")
     );
 
     return commanderCard?.image_uris?.normal;
@@ -50,14 +50,14 @@ router.get("/discover", async (req, res) => {
 
     // Enriquecer precons com a imagem do comandante
     const enrichedPrecons = await Promise.all(
-      precons.map(async (precon) => {
-        const commanderImage = await getCommanderCardImage(precon.code);
-        return {
-          ...precon,
-          commanderImage: commanderImage ?? precon.iconSvg ?? "/placeholder-set.png",
-        };
-      })
-    );
+  precons.map(async (precon) => {
+    const commanderCardImage = await getCommanderCardImage(precon.code);
+    return {
+      ...precon,
+      commanderImage: commanderCardImage ?? precon.iconSvg ?? "/placeholder-set.png",
+    };
+  })
+);
 
     res.json({
       latestSets,

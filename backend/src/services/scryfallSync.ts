@@ -12,7 +12,7 @@ export async function syncScryfallSets() {
   try {
     const { latestSets, precons } = await fetchScryfallSets();
 
-    // 🔹 Junta e remove duplicatas pelo `code`
+    // Junta e remove duplicatas pelo `code`
     const allSetsMap = new Map<string, typeof latestSets[0]>();
     [...latestSets, ...precons].forEach((set) => {
       allSetsMap.set(set.code, set);
@@ -22,7 +22,7 @@ export async function syncScryfallSets() {
     console.log(`${allSets.length} sets únicos para processar...`);
 
     for (const set of allSets) {
-      // 🔹 Upsert do set
+      // Upsert do set (sem o campo commanderImage)
       await prisma.set.upsert({
         where: { code: set.code },
         update: {
@@ -40,16 +40,15 @@ export async function syncScryfallSets() {
         },
       });
 
-      console.log(`✔️  Set processado: ${set.code} - ${set.name}`);
+      console.log(`Set processado: ${set.code} - ${set.name}`);
 
-      // 🔹 Se for precon (commander), buscar carta do comandante no Scryfall
+      // Se for precon (commander), buscar carta lendária dentro do deck
       if (set.type === "commander") {
         try {
           const res = await fetch(
             `https://api.scryfall.com/cards/search?order=set&q=e:${set.code}&unique=prints`
           );
 
-          // Tipagem segura do JSON da Scryfall
           const json = await res.json();
           const data = json as ScryfallResponse;
 
@@ -58,45 +57,71 @@ export async function syncScryfallSets() {
             continue;
           }
 
-          // Procurar carta tipo "Commander"
-         const commanderCard: ScryfallCard | undefined = data.data.find(
-  (c) => c.type_line.toLowerCase().includes("legendary") 
-     && c.oracle_text?.toLowerCase().includes("commander")
-);
+          // Procurar uma carta lendária do deck
+          const legendaryCard = data.data.find(
+            (card) => card.type_line.toLowerCase().includes("legendary")
+          );
 
-          if (commanderCard) {
-            // Upsert da carta no banco
+          if (legendaryCard) {
+            // Agora vamos garantir que a imagem da carta lendária é salva
+            const imageNormal = legendaryCard.image_uris?.normal ?? null;
+            const imageArtCrop = legendaryCard.image_uris?.art_crop ?? null;
+
+            // Salvar a imagem da carta lendária no banco
             await prisma.card.upsert({
-              where: { scryfallId: commanderCard.id },
+              where: { scryfallId: legendaryCard.id },
               update: {
-                name: commanderCard.name,
-                typeLine: commanderCard.type_line,
-                cmc: commanderCard.cmc,
-                imageNormal: commanderCard.image_uris?.normal ?? null,
-                imageArtCrop: commanderCard.image_uris?.art_crop ?? null,
+                name: legendaryCard.name,
+                typeLine: legendaryCard.type_line,
+                cmc: legendaryCard.cmc,
+                imageNormal: imageNormal,   // Aqui estamos salvando a imagem normal
+                imageArtCrop: imageArtCrop, // E aqui a imagem art crop
                 setCode: set.code,
                 setName: set.name,
-                collectorNumber: commanderCard.collectorNumber ?? null,
+                collectorNumber: legendaryCard.collectorNumber ?? null,
               },
               create: {
-                scryfallId: commanderCard.id,
-                name: commanderCard.name,
-                typeLine: commanderCard.type_line,
-                cmc: commanderCard.cmc,
-                imageNormal: commanderCard.image_uris?.normal ?? null,
-                imageArtCrop: commanderCard.image_uris?.art_crop ?? null,
+                scryfallId: legendaryCard.id,
+                name: legendaryCard.name,
+                typeLine: legendaryCard.type_line,
+                cmc: legendaryCard.cmc,
+                imageNormal: imageNormal,
+                imageArtCrop: imageArtCrop,
                 setCode: set.code,
                 setName: set.name,
-                collectorNumber: commanderCard.collectorNumber ?? null,
+                collectorNumber: legendaryCard.collectorNumber ?? null,
               },
             });
 
-            console.log(`Comandante salvo: ${commanderCard.name}`);
+            console.log(`Carta lendária salva: ${legendaryCard.name}`);
+
+            // **Agora vamos buscar o set com a carta lendária associada para pegar a imagem correta**
+            const setWithImage = await prisma.set.findUnique({
+              where: { code: set.code },
+              include: {
+                cards: {
+                  where: {
+                    scryfallId: legendaryCard.id,  // Filtrando pela carta lendária
+                  },
+                  select: {
+                    imageNormal: true,
+                    imageArtCrop: true,
+                  },
+                },
+              },
+            });
+
+            // Aqui, garantimos que o campo `commanderImage` seja preenchido com a imagem correta da carta
+            const commanderImage = setWithImage?.cards[0]?.imageArtCrop ?? setWithImage?.cards[0]?.imageNormal;
+
+
+            console.log(`Imagem do comandante para ${set.code}: ${commanderImage}`);
+            // Aqui você pode enviar `responseToFrontend` para o frontend no formato desejado.
           } else {
-            console.log(`Nenhum comandante encontrado para ${set.code}`);
+            console.log(`Nenhuma carta lendária encontrada para ${set.code}`);
           }
         } catch (err) {
-          console.error(`Erro ao buscar comandante do set ${set.code}:`, err);
+          console.error(`Erro ao buscar carta lendária do set ${set.code}:`, err);
         }
       }
     }
