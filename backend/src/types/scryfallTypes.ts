@@ -15,4 +15,11 @@ export interface ScryfallCard {
   rarity: string; // Raridade do card (ex: "Rare", "Mythic", "Uncommon", etc.)
   price_usd?: string; // Preço do card em USD (se disponível)
   scryfall_uri?: string; // URL da página do card no Scryfall
+  oracle_text?: string | null;
+}
+
+export interface ScryfallResponse {
+  object: string;
+  total_cards: number;
+  data: ScryfallCard[];
 }

@@ -1,7 +1,6 @@
 import { Router } from "express";
 import type { Request, Response } from "express";
-import { authMiddleware } from "../auth/authMiddleware.js";
-import { fetchScryfallSets } from "../services/scryfall.js"; // criaremos essa função
+import { authMiddleware } from "../auth/authMiddleware.js";// criaremos essa função
 
 import {
   createDeck,
@@ -17,7 +16,6 @@ import type {
   UpdateDeckDTO,
   ImportDeckDTO,
 } from "../types/deckTypes.js";
-import prisma from "../db.js";
 
 const router = Router();
 
@@ -149,28 +147,5 @@ router.post(
     }
   }
 );
-
-router.get("/discover", async (req, res) => {
-  try {
-    const latestSets = await prisma.set.findMany({
-      orderBy: { releaseAt: "desc" },
-      take: 10,
-    });
-
-    const precons = await prisma.set.findMany({
-      where: { type: "commander" },
-      orderBy: { releaseAt: "desc" },
-      take: 10,
-    });
-
-    res.json({
-      latestSets,
-      precons,
-    });
-  } catch (err) {
-    console.error("❌ Erro no /discover:", err);
-    res.status(500).json({ error: "Erro ao buscar discover" });
-  }
-});
 
 export default router;

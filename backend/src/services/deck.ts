@@ -30,7 +30,6 @@ export async function createDeck(userId: string, data: CreateDeckDTO): Promise<D
   const deck = await prisma.deck.create({
     data: {
       name: data.name,
-      description: data.description,
       format: "commander",
       commanderId: commander.id,
       userId,
