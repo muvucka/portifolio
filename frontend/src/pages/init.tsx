@@ -139,12 +139,15 @@ export default function Init() {
                 handleScroll(preconsRef, preconsPage, setPreconsPage, precons.length)
               }
             >
-              {precons.slice(0, preconsPage * ITEMS_PER_PAGE).map((precon) => (
-                <div key={precon.id} className="precon-card">
-                  <img src={(precon.commanderImage || precon.iconSvg || "/placeholder-set.png") as string} alt={precon.name} />
-                  <p>{precon.name}</p>
-                </div>
-              ))}
+            {precons.slice(0, preconsPage * ITEMS_PER_PAGE).map((precon) => {
+  const imageSrc = precon.commanderImage || precon.iconSvg || "/placeholder-set.png";
+  return (
+    <div key={precon.id} className="precon-card">
+      <img src={imageSrc} alt={precon.name} onError={(e) => e.currentTarget.src = '/placeholder-set.png'} />
+      <p>{precon.name}</p>
+    </div>
+  );
+})}
             </div>
             {preconsCanScrollRight && (
               <button className="scroll-btn right" onClick={() => scroll(preconsRef, 200)}>
