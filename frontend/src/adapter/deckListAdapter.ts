@@ -16,7 +16,8 @@ export interface ApiSetItem {
   name: string;
   releaseAt: string;
   type: string;
-  iconSvgUri: string | null; // Alterado para 'icon_svg_uri'
+  iconSvg: string | null; // Alterado para 'icon_svg_uri'
+  commanderImage?: string | null; // Nova propriedade para a imagem do comandante
 }
 
 export interface DiscoverResponse {
@@ -39,6 +40,6 @@ export function mapSetToUI(set: ApiSetItem) {
   return {
     id: set.id,
     name: set.name,
-    image: set.iconSvgUri ?? "/placeholder-set.png",
+    image: set.iconSvg ?? "/placeholder-set.png",
   };
 }

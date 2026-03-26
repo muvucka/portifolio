@@ -20,45 +20,54 @@ export default function Init() {
 
   const ITEMS_PER_PAGE = 10;
 
-  useEffect(() => {
-    async function fetchDiscover() {
-      try {
-        const token = localStorage.getItem("accessToken");
-        if (!token) throw new Error("Usuário não está logado");
+ useEffect(() => {
+  async function fetchDiscover() {
+    setLoading(true);
 
-        const res = await fetch("http://localhost:3000/decks/discover", {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) throw new Error("Usuário não está logado");
 
-        if (!res.ok) {
-          throw new Error(`Erro ao buscar discover: ${res.status} ${res.statusText}`);
-        }
+      const res = await fetch("http://localhost:3000/explorer/discover", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        const data: DiscoverResponse = await res.json();
-        console.log("Resposta do backend:", data);
-
-        if (!data || !data.latestSets || !data.precons) {
-          throw new Error("Resposta inválida do backend");
-        }
-
-        // Atualizar o estado com os sets e precons corretamente
-        setPrecons(data.precons);
-        setSets(data.latestSets);
-
-      } catch (err: unknown) {
-        console.error("Erro ao buscar discover:", err);
-      } finally {
-        setLoading(false);
-        updateScrollButtons(preconsRef, setPreconsCanScrollLeft, setPreconsCanScrollRight);
-        updateScrollButtons(setsRef, setSetsCanScrollLeft, setSetsCanScrollRight);
+      if (!res.ok) {
+        throw new Error(`Erro ao buscar discover: ${res.status} ${res.statusText}`);
       }
-    }
 
-    fetchDiscover();
-  }, []);
+      const data: DiscoverResponse = await res.json();
+      console.log("Resposta do backend:", data);
+
+      if (
+        !data ||
+        !Array.isArray(data.latestSets) ||
+        !Array.isArray(data.precons)
+      ) {
+        throw new Error("Resposta inválida do backend");
+      }
+
+      // Atualiza os estados com os dados recebidos
+      setSets(data.latestSets);
+      setPrecons(data.precons);
+
+      // Opcional: log para debug
+      console.log("Sets carregados:", data.latestSets.length);
+      console.log("Precons carregados:", data.precons.length);
+    } catch (err: unknown) {
+      console.error("Erro ao buscar discover:", err);
+    } finally {
+      setLoading(false);
+      updateScrollButtons(preconsRef, setPreconsCanScrollLeft, setPreconsCanScrollRight);
+      updateScrollButtons(setsRef, setSetsCanScrollLeft, setSetsCanScrollRight);
+    }
+  }
+
+  fetchDiscover();
+}, []);
 
   function handleScroll(
     ref: React.RefObject<HTMLDivElement | null>,
@@ -132,7 +141,7 @@ export default function Init() {
             >
               {precons.slice(0, preconsPage * ITEMS_PER_PAGE).map((precon) => (
                 <div key={precon.id} className="precon-card">
-                  <img src={precon.iconSvgUri ?? "/placeholder-card.png"} alt={precon.name} />
+                  <img src={(precon.commanderImage || precon.iconSvg || "/placeholder-set.png") as string} alt={precon.name} />
                   <p>{precon.name}</p>
                 </div>
               ))}
@@ -147,7 +156,7 @@ export default function Init() {
 
         {/* Sets */}
         <section className="discover-section">
-          <h2>Sets Recentes</h2>
+          <h2>Coleções Atuais</h2>
           <div className="carousel-wrapper">
             {setsCanScrollLeft && (
               <button className="scroll-btn left" onClick={() => scroll(setsRef, -200)}>
@@ -161,7 +170,7 @@ export default function Init() {
             >
               {sets.slice(0, setsPage * ITEMS_PER_PAGE).map((set) => (
                 <div key={set.id} className="set-card">
-                  <img src={set.iconSvgUri ?? "/placeholder-set.png"} alt={set.name} />
+                  <img src={set.iconSvg ?? "/placeholder-set.png"} alt={set.name} />
                   <p>{set.name}</p>
                 </div>
               ))}
