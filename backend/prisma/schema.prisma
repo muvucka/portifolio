@@ -96,10 +96,16 @@ model Set {
   @@index([type])
 }
 
+enum DeckSection {
+  meus
+  proximos
+}
+
 model Deck {
-  id        String     @id @default(uuid())
+  id        String      @id @default(uuid())
   name      String
   format    String
+  section   DeckSection @default(meus)
   deckCards DeckCard[]
 
   commanderId String? @unique // FK opcional

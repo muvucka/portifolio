@@ -2,6 +2,7 @@ import prisma from "../services/prisma.js";
 import type { Deck, DeckCard, Card } from "../../prisma/generated/client/index.js";
 import { getOrCreateCard } from "./card.js";  // Função importada
 import type { CreateDeckDTO, DeckStats, ImportDeckDTO } from "../types/deckTypes.js";
+import { fetchCard } from "../services/scryfall.js";
 
 const MAX_COMMANDER_CARDS = 99;
 
@@ -33,6 +34,7 @@ export async function createDeck(userId: string, data: CreateDeckDTO): Promise<D
       format: "commander",
       commanderId: commander.id,
       userId,
+      section: "meus", // Define a seção como "meus" por padrão
     },
   });
 
@@ -46,6 +48,7 @@ export async function createDeck(userId: string, data: CreateDeckDTO): Promise<D
         deckId: deck.id,
         cardId: card.id,
         quantity: cardData.quantity,
+        section: deck.section, // Adiciona a seção aqui
       },
     });
   }
@@ -77,6 +80,7 @@ export async function getAllDecks(userId: string) {
 
     // ✅ total de cartas
     cardsCount: deck.deckCards.reduce((sum, c) => sum + c.quantity, 0),
+    section: deck.section,
   }));
 }
 
@@ -119,6 +123,183 @@ export async function importDeck(
   }
 
   return deck;
+}
+
+type ParsedCard = {
+  name: string;
+  quantity: number;
+  section: "meus" | "proximos";
+};
+
+type ScryfallCard = {
+  id: string;
+  name: string;
+  type_line: string;
+  cmc: number;
+  image_uris?: {
+    normal?: string;
+    art_crop?: string;
+  };
+  card_faces?: {
+    image_uris?: {
+      normal?: string;
+      art_crop?: string;
+    };
+  }[];
+  set: string;
+  set_name: string;
+};
+
+// CACHE EM MEMÓRIA (por execução)
+const cardCache = new Map<string, ScryfallCard>();
+
+async function getCard(name: string): Promise<ScryfallCard> {
+  if (cardCache.has(name)) {
+    return cardCache.get(name)!;
+  }
+
+  const data = await fetchCard(name);
+
+  if (!data) {
+    throw new Error(`Carta não encontrada: ${name}`);
+  }
+
+  cardCache.set(name, data);
+  return data;
+}
+
+export async function importDeckFromText(
+  userId: string,
+  name: string,
+  rawDecklist?: string,
+  cards?: { quantity: number; name: string }[]
+) {
+  if (!rawDecklist && !cards) {
+    throw new Error("Nenhuma decklist fornecida");
+  }
+
+  // Converte array de cards em string
+  const decklistString =
+    rawDecklist ||
+    cards!.map(c => `${c.quantity} ${c.name}`).join("\n");
+
+  // Parse das cartas
+  const parsed: ParsedCard[] = decklistString
+    .split("\n")
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map(line => {
+      const cleaned = line.replace(/\(.*?\)\s*\d*$/, "").trim();
+      const match = cleaned.match(/^(\d+)\s+(.+)$/);
+      if (!match) return null;
+      return {
+        quantity: parseInt(match[1]!),
+        name: match[2], // Adiciona a seção aqui
+      };
+    })
+    .filter((x): x is ParsedCard => !!x && !!x.name);
+
+  if (parsed.length === 0) {
+    throw new Error("Decklist vazia");
+  }
+
+  const uniqueNames = [...new Set(parsed.map(c => c.name))];
+
+  // Busca cartas com fuzzy search
+  const cardsData = await Promise.all(
+    uniqueNames.map(async name => {
+      try {
+        return await getCard(name);
+      } catch {
+        return null;
+      }
+    })
+  );
+
+  const notFound = uniqueNames.filter((_, i) => !cardsData[i]);
+  if (notFound.length > 0) {
+    throw new Error(`Cartas não encontradas na API: ${notFound.join(", ")}`);
+  }
+
+  // --- UPSERT DOS SETS ---
+  const uniqueSetCodes = [...new Set(cardsData.map(c => c!.set))];
+  const setMap = new Map<string, { id: string; code: string }>();
+
+  await Promise.all(
+    uniqueSetCodes.map(async setCode => {
+      const exampleCard = cardsData.find(c => c!.set === setCode)!;
+      const dbSet = await prisma.set.upsert({
+        where: { code: setCode },
+        update: {},
+        create: {
+          code: setCode,
+          name: exampleCard!.set_name,
+          type: "unknown",
+        },
+      });
+      setMap.set(setCode, { id: dbSet.id, code: dbSet.code });
+    })
+  );
+
+  // --- UPSERT DOS CARDS ---
+  const dbCards = await Promise.all(
+    cardsData.map(data =>
+      prisma.card.upsert({
+        where: { scryfallId: data!.id },
+        update: {},
+        create: {
+          scryfallId: data!.id,
+          name: data!.name,
+          typeLine: data!.type_line,
+          cmc: data!.cmc,
+          imageNormal:
+            data!.image_uris?.normal ||
+            data!.card_faces?.[0]?.image_uris?.normal ||
+            null,
+          imageArtCrop:
+            data!.image_uris?.art_crop ||
+            data!.card_faces?.[0]?.image_uris?.art_crop ||
+            null,
+          setCode: setMap.get(data!.set)!.code,
+          setName: data!.set_name,
+        },
+      })
+    )
+  );
+
+  const cardMap = new Map(dbCards.map(c => [c.name, c]));
+
+  // Commander = primeira carta
+  const commanderName = parsed[0]?.name;
+  const commander = commanderName ? cardMap.get(commanderName) : undefined;
+  if (!commander) {
+    throw new Error(`Commander não encontrado: ${commanderName}`);
+  }
+
+  // --- CONSOLIDAR QUANTIDADES ---
+  const deckCardsMap = new Map<string, number>();
+  parsed.forEach(item => {
+    const card = cardMap.get(item.name);
+    if (!card) throw new Error(`Carta não encontrada no banco: ${item.name}`);
+    const prevQty = deckCardsMap.get(card.id) || 0;
+    deckCardsMap.set(card.id, prevQty + item.quantity);
+  });
+
+  const deckCards = Array.from(deckCardsMap.entries()).map(([cardId, quantity]) => ({
+    cardId,
+    quantity,
+  }));
+
+  // Cria deck com nome fornecido
+  return prisma.deck.create({
+    data: {
+      name,
+      format: "commander",
+      userId,
+      commanderId: commander.id,
+      deckCards: { create: deckCards },
+    },
+  });
 }
 
 /* =========================

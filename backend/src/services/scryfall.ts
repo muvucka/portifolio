@@ -1,5 +1,6 @@
 import fetch from "node-fetch";
-import type { ScryfallCardResponse } from "../types/deckTypes.js";
+import type { ScryfallSearchResponse } from "../types/deckTypes.js";
+import type { ScryfallCard } from "../types/scryfallTypes.js";
 
 // =========================
 // CARD DTO
@@ -58,7 +59,7 @@ interface ScryfallApiResponse {
 // =========================
 export async function fetchCardByName(name: string): Promise<CardDTO> {
   const response = await fetch(
-    `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(name)}`,
+    `https://api.scryfall.com/cards/search?q=!"${encodeURIComponent(name)}"&unique=cards`,
     {
       headers: {
         "User-Agent": "NAGO/1.0",
@@ -68,11 +69,16 @@ export async function fetchCardByName(name: string): Promise<CardDTO> {
   );
 
   if (!response.ok) {
-    if (response.status === 404) throw new Error("Carta não encontrada");
     throw new Error(`Scryfall error: ${response.status} ${response.statusText}`);
   }
 
-  const data = (await response.json()) as ScryfallCardResponse;
+  const json = await response.json() as ScryfallSearchResponse;
+
+  if (!json.data || json.data.length === 0) {
+    throw new Error(`Carta não encontrada: ${name}`);
+  }
+
+  const data = json.data[0]!;
 
   return {
     scryfallId: data.id,
@@ -84,7 +90,7 @@ export async function fetchCardByName(name: string): Promise<CardDTO> {
     setCode: data.set,
     setName: data.set_name,
     collectorNumber: data.collector_number,
-    isBasicLand: data.type_line.toLowerCase().includes("basic"),
+    isBasicLand: data.type_line?.toLowerCase().includes("basic") ?? false,
     colors: data.colors ?? [],
     colorIdentity: data.color_identity ?? [],
   };
@@ -145,4 +151,17 @@ function mapSet(set: Set) {
     type: set.set_type,
     iconSvg: set.icon_svg_uri,
   };
+}
+
+export async function fetchCard(name: string): Promise<ScryfallCard | null> {
+  const res = await fetch(
+    `https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(name)}`
+  );
+
+  if (!res.ok) {
+    return null;
+  }
+
+  const data: ScryfallCard = await res.json() as ScryfallCard;
+  return data;
 }

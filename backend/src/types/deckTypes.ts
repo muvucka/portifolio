@@ -34,6 +34,7 @@ export interface ImportDeckDTO {
   name: string;
   commanderName: string;
   decklist: string;
+  section: "meus" | "proximos";
 }
 
 // types/CardTypes.ts
@@ -51,4 +52,13 @@ export interface ScryfallCardResponse {
   collector_number: string;
   colors?: string[];
   color_identity?: string[];
+}
+
+export interface ScryfallSearchResponse {
+  data: ScryfallCardResponse[];
+}
+
+export interface ImportPreconDTO {
+  name: string;
+  sourceUrl: string;
 }

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import type { Request, Response } from "express";
 import { authMiddleware } from "../auth/authMiddleware.js";// criaremos essa função
+import { importDeckFromText } from "../services/deck.js";
 
 import {
   createDeck,
@@ -8,13 +9,11 @@ import {
   getAllDecks,
   updateDeck,
   deleteDeck,
-  importDeck,
 } from "../services/deck.js";
 
 import type {
   CreateDeckDTO,
   UpdateDeckDTO,
-  ImportDeckDTO,
 } from "../types/deckTypes.js";
 
 const router = Router();
@@ -126,26 +125,22 @@ router.delete(
   }
 );
 
-router.post(
-  "/import", authMiddleware,
-  async (
-    req: Request<{}, {}, ImportDeckDTO>,
-    res: Response
-  ) => {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
+router.post("/import-text", authMiddleware, async (req, res) => {
+  try {
+    const user = req.user; // vem do authMiddleware
+    const { name, section, cards } = req.body;
 
-      const deck = await importDeck(req.user.id, req.body);
-
-      res.json(deck);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      }
+    if (!cards || cards.length === 0) {
+      throw new Error("Nenhuma decklist fornecida");
     }
+
+    const deck = await importDeckFromText(req.user.id, name, section, cards);
+
+    res.json(deck);
+  } catch (err: any) {
+    console.error("Erro ao importar deck:", err);
+    res.status(400).json({ error: err.message });
   }
-);
+});
 
 export default router;
