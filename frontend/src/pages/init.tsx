@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import "../pages/init.css";
 import type { DiscoverResponse, ApiSetItem } from "../adapter/deckListAdapter";
 
+
 export default function Init() {
   const [sets, setSets] = useState<ApiSetItem[]>([]);
   const [precons, setPrecons] = useState<ApiSetItem[]>([]);
@@ -17,6 +18,9 @@ export default function Init() {
   const [preconsCanScrollRight, setPreconsCanScrollRight] = useState(false);
   const [setsCanScrollLeft, setSetsCanScrollLeft] = useState(false);
   const [setsCanScrollRight, setSetsCanScrollRight] = useState(false);
+
+  
+  
 
   const ITEMS_PER_PAGE = 10;
 
@@ -67,7 +71,9 @@ export default function Init() {
   }
 
   fetchDiscover();
-}, []);
+ }, []);
+  
+
 
   function handleScroll(
     ref: React.RefObject<HTMLDivElement | null>,
@@ -123,7 +129,6 @@ export default function Init() {
   return (
     <div className="init-page">
       <main className="content-wrapper">
-        {/* Precons */}
         <section className="discover-section">
           <h2>Precons Recentes</h2>
           <div className="carousel-wrapper">
@@ -144,6 +149,7 @@ export default function Init() {
   return (
     <div key={precon.id} className="precon-card">
       <img src={imageSrc} alt={precon.name} onError={(e) => e.currentTarget.src = '/placeholder-set.png'} />
+       
       <p>{precon.name}</p>
     </div>
   );
@@ -185,6 +191,7 @@ export default function Init() {
             )}
           </div>
         </section>
+        
       </main>
     </div>
   );
