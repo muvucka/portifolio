@@ -10,6 +10,7 @@ const app = express();
 app.use(cors({
   origin: "http://localhost:5173",
 }));
+app.use("/explorer", explorerRoutes);
 
 // Middleware para processar requisições JSON
 app.use(express.json());
@@ -17,6 +18,5 @@ app.use(express.json());
 // Rotas de autenticação e decks
 app.use("/", authRoutes);
 app.use("/decks", deckRoutes);
-app.use("/explorer", explorerRoutes);
 
 export default app;
