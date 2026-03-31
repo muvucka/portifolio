@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from "react";
 import "../pages/init.css";
 import type { DiscoverResponse, ApiSetItem } from "../adapter/deckListAdapter";
 
-
 export default function Init() {
   const [sets, setSets] = useState<ApiSetItem[]>([]);
   const [precons, setPrecons] = useState<ApiSetItem[]>([]);
@@ -19,61 +18,46 @@ export default function Init() {
   const [setsCanScrollLeft, setSetsCanScrollLeft] = useState(false);
   const [setsCanScrollRight, setSetsCanScrollRight] = useState(false);
 
-  
-  
-
   const ITEMS_PER_PAGE = 10;
 
- useEffect(() => {
-  async function fetchDiscover() {
-    setLoading(true);
+  useEffect(() => {
+    async function fetchDiscover() {
+      setLoading(true);
 
-    try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) throw new Error("Usuário não está logado");
+      try {
+        const res = await fetch("http://localhost:3000/explorer/discover");
 
-      const res = await fetch("http://localhost:3000/explorer/discover", {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+        if (!res.ok) {
+          throw new Error(`Erro ao buscar discover: ${res.status} ${res.statusText}`);
+        }
 
-      if (!res.ok) {
-        throw new Error(`Erro ao buscar discover: ${res.status} ${res.statusText}`);
+        const data: DiscoverResponse = await res.json();
+        console.log("Resposta do backend:", data);
+
+        if (
+          !data ||
+          !Array.isArray(data.latestSets) ||
+          !Array.isArray(data.precons)
+        ) {
+          throw new Error("Resposta inválida do backend");
+        }
+
+        setSets(data.latestSets);
+        setPrecons(data.precons);
+
+        console.log("Sets carregados:", data.latestSets.length);
+        console.log("Precons carregados:", data.precons.length);
+      } catch (err: unknown) {
+        console.error("Erro ao buscar discover:", err);
+      } finally {
+        setLoading(false);
+        updateScrollButtons(preconsRef, setPreconsCanScrollLeft, setPreconsCanScrollRight);
+        updateScrollButtons(setsRef, setSetsCanScrollLeft, setSetsCanScrollRight);
       }
-
-      const data: DiscoverResponse = await res.json();
-      console.log("Resposta do backend:", data);
-
-      if (
-        !data ||
-        !Array.isArray(data.latestSets) ||
-        !Array.isArray(data.precons)
-      ) {
-        throw new Error("Resposta inválida do backend");
-      }
-
-      // Atualiza os estados com os dados recebidos
-      setSets(data.latestSets);
-      setPrecons(data.precons);
-
-      // Opcional: log para debug
-      console.log("Sets carregados:", data.latestSets.length);
-      console.log("Precons carregados:", data.precons.length);
-    } catch (err: unknown) {
-      console.error("Erro ao buscar discover:", err);
-    } finally {
-      setLoading(false);
-      updateScrollButtons(preconsRef, setPreconsCanScrollLeft, setPreconsCanScrollRight);
-      updateScrollButtons(setsRef, setSetsCanScrollLeft, setSetsCanScrollRight);
     }
-  }
 
-  fetchDiscover();
- }, []);
-  
-
+    fetchDiscover();
+  }, []);
 
   function handleScroll(
     ref: React.RefObject<HTMLDivElement | null>,
@@ -144,16 +128,15 @@ export default function Init() {
                 handleScroll(preconsRef, preconsPage, setPreconsPage, precons.length)
               }
             >
-            {precons.slice(0, preconsPage * ITEMS_PER_PAGE).map((precon) => {
-  const imageSrc = precon.commanderImage || precon.iconSvg || "/placeholder-set.png";
-  return (
-    <div key={precon.id} className="precon-card">
-      <img src={imageSrc} alt={precon.name} onError={(e) => e.currentTarget.src = '/placeholder-set.png'} />
-       
-      <p>{precon.name}</p>
-    </div>
-  );
-})}
+              {precons.slice(0, preconsPage * ITEMS_PER_PAGE).map((precon) => {
+                const imageSrc = precon.commanderImage || precon.iconSvg || "/placeholder-set.png";
+                return (
+                  <div key={precon.id} className="precon-card">
+                    <img src={imageSrc} alt={precon.name} onError={(e) => e.currentTarget.src = '/placeholder-set.png'} />
+                    <p>{precon.name}</p>
+                  </div>
+                );
+              })}
             </div>
             {preconsCanScrollRight && (
               <button className="scroll-btn right" onClick={() => scroll(preconsRef, 200)}>
@@ -163,7 +146,6 @@ export default function Init() {
           </div>
         </section>
 
-        {/* Sets */}
         <section className="discover-section">
           <h2>Coleções Atuais</h2>
           <div className="carousel-wrapper">
@@ -191,7 +173,6 @@ export default function Init() {
             )}
           </div>
         </section>
-        
       </main>
     </div>
   );

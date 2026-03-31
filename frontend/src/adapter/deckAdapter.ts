@@ -26,16 +26,18 @@ export interface ApiDeck {
 }
 
 export function mapApiDeckToUI(deck: ApiDeck) {
-  const cards = deck.deckCards.map(dc => ({
+  const deckCards = deck.deckCards ?? [];
+
+  const cards = deckCards.map(dc => ({
     id: dc.id,
-    cardId: dc.card.id,
-    name: dc.card.name,
-    image: dc.card.imageNormal,
+    cardId: dc.card?.id ?? "",
+    name: dc.card?.name ?? "",
+    image: dc.card?.imageNormal ?? "",
     quantity: dc.quantity,
-    typeLine: dc.card.typeLine,
-    cmc: dc.card.cmc,
-    colors: dc.card.colorIdentities?.map(c => c.value) ?? [],
-    isCommander: dc.card.id === deck.commander?.id,
+    typeLine: dc.card?.typeLine ?? "",
+    cmc: dc.card?.cmc ?? 0,
+    colors: dc.card?.colorIdentities?.map(c => c.value) ?? [],
+    isCommander: dc.card?.id === deck.commander?.id,
   }));
 
   return {

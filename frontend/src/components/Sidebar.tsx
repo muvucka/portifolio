@@ -33,7 +33,7 @@ useEffect(() => {
 
   window.addEventListener("login", handleLoginEvent);
   window.addEventListener("storage", handleStorage);
-  window.addEventListener("deckChange", handleDeckChange); // 👈
+  window.addEventListener("deckChange", handleDeckChange);
 
   return () => {
     window.removeEventListener("login", handleLoginEvent);
