@@ -22,9 +22,9 @@ export interface ApiDeck {
     card: ApiCard;
   }[];
   updatedAt: string;
+  section: "meus" | "proximos";
 }
 
-// 👇 ESSE É O MAIS IMPORTANTE
 export function mapApiDeckToUI(deck: ApiDeck) {
   const cards = deck.deckCards.map(dc => ({
     id: dc.id,
@@ -44,8 +44,9 @@ export function mapApiDeckToUI(deck: ApiDeck) {
       name: deck.name,
       coverImage: deck.commander?.imageArtCrop,
       cardsCount: cards.reduce((sum, c) => sum + c.quantity, 0),
-      category: deck.format,
-      lastUpdatedAt: deck.updatedAt,
+      format: deck.format,
+      updatedAt: deck.updatedAt,
+      section: deck.section,
     },
     cards,
   };

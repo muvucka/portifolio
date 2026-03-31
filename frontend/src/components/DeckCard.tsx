@@ -3,30 +3,42 @@ import "./DeckCard.css";
 import { GiBehold } from "react-icons/gi";
 import { useNavigate } from "react-router-dom";
 
-
 interface DeckCardProps {
-    deck: Deck;
+  deck: Deck;
 }
 
-export function DeckCard ({ deck }: DeckCardProps){
-    
-const navigate = useNavigate();
-    return (
-        <div className="card">
-            <img
-                src={deck.coverImage || "/placeholder-card.png"}
-                alt={deck.name}
-                className="card-image"
-            />
+export function DeckCard({ deck }: DeckCardProps) {
+  const navigate = useNavigate();
 
-            <div className="card-info">
-                <strong className="card-title">{deck.name}</strong>
-                {deck.cardsCount && <span>{deck.cardsCount} cartas</span>}
-            </div>
+  const handleOpenDeck = () => {
+      localStorage.setItem("lastDeckId", deck.id);
+      
+  window.dispatchEvent(new Event("deckChange"));
 
-            <button type="submit" onClick={() => navigate(`/deck/${deck.id}`)} className="open-button" aria-label={deck.name}>
-                <GiBehold size={30} />
-            </button>
-        </div>
-    )
+    navigate(`/deck/${deck.id}`);
+  };
+
+  return (
+    <div className="card">
+      <img
+        src={deck.coverImage || "/placeholder-card.png"}
+        alt={deck.name}
+        className="card-image"
+      />
+
+      <div className="card-info">
+        <strong className="card-title">{deck.name}</strong>
+        {deck.cardsCount && <span>{deck.cardsCount} cartas</span>}
+      </div>
+
+      <button
+        type="button"
+        onClick={handleOpenDeck} 
+        className="open-button"
+        aria-label={deck.name}
+      >
+        <GiBehold size={30} />
+      </button>
+    </div>
+  );
 }

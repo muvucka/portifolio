@@ -7,6 +7,7 @@ export interface ApiDeckListItem {
   updatedAt: string;
   coverImage?: string | null;
   cardsCount: number;
+  section: "meus" | "proximos";
 }
 
 // types/Set.ts
@@ -31,8 +32,9 @@ export function mapDeckListToUI(data: ApiDeckListItem[]): Deck[] {
     name: deck.name,
     coverImage: deck.coverImage ?? "/placeholder-card.png",
     cardsCount: deck.cardsCount,
-    category: deck.format,
-    lastUpdatedAt: deck.updatedAt,
+    format: deck.format,
+    updatedAt: deck.updatedAt,
+    section: deck.section,
   }));
 }
 

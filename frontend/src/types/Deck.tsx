@@ -4,7 +4,7 @@ export interface Deck {
   coverImage?: string;
   format: string;        // ex: Commander, Standard, Modern, Cube
   cardsCount: number;
-  section: "meus" | "proximos"; // nova propriedade para diferenciar se é "meus" ou "próximos"
+  section: "meus" | "proximos";   // A seção a qual o deck pertence
 
   updatedAt: string;
 }

@@ -1,43 +1,56 @@
-// components/Sidebar.tsx
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { GiEvilBook, GiSpellBook, GiGoblinCamp, GiDelighted, GiCardJoker } from "react-icons/gi";
+import {
+  GiEvilBook,
+  GiSpellBook,
+  GiGoblinCamp,
+  GiDelighted,
+  GiCardJoker,
+} from "react-icons/gi";
 import "./Sidebar.css";
 
 export default function Sidebar() {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Estado de login inicializado com base no accessToken
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(
     Boolean(localStorage.getItem("accessToken"))
   );
 
-  // useEffect para escutar login/logout e alterações no localStorage
-  useEffect(() => {
-    // Atualiza estado quando ocorre login na mesma aba
-    const handleLoginEvent = () =>
-      setIsLoggedIn(Boolean(localStorage.getItem("accessToken")));
+const [lastDeckId, setLastDeckId] = useState<string | null>(
+  localStorage.getItem("lastDeckId")
+);
+useEffect(() => {
+  const handleLoginEvent = () =>
+    setIsLoggedIn(Boolean(localStorage.getItem("accessToken")));
 
-    // Atualiza estado quando localStorage muda em outra aba
-    const handleStorage = () =>
-      setIsLoggedIn(Boolean(localStorage.getItem("accessToken")));
+  const handleStorage = () =>
+    setIsLoggedIn(Boolean(localStorage.getItem("accessToken")));
 
-    window.addEventListener("login", handleLoginEvent); // evento customizado
-    window.addEventListener("storage", handleStorage);  // evento para outras abas
+  const handleDeckChange = () => {
+    setLastDeckId(localStorage.getItem("lastDeckId"));
+  };
 
-    return () => {
-      window.removeEventListener("login", handleLoginEvent);
-      window.removeEventListener("storage", handleStorage);
-    };
-  }, []);
+  window.addEventListener("login", handleLoginEvent);
+  window.addEventListener("storage", handleStorage);
+  window.addEventListener("deckChange", handleDeckChange); // 👈
 
-  // Logout seguro
+  return () => {
+    window.removeEventListener("login", handleLoginEvent);
+    window.removeEventListener("storage", handleStorage);
+    window.removeEventListener("deckChange", handleDeckChange);
+  };
+}, []);
+
   function handleLogout() {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     setIsLoggedIn(false);
+    setLastDeckId(null);
     navigate("/login");
   }
+
+  const isDeckActive = location.pathname.startsWith("/deck");
 
   return (
     <aside className="sidebar">
@@ -49,7 +62,9 @@ export default function Sidebar() {
       <nav className="sidebar-nav">
         <NavLink
           to="/"
-          className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}
+          className={({ isActive }) =>
+            isActive ? "nav-item active" : "nav-item"
+          }
         >
           <div className="icons">
             <GiDelighted />
@@ -61,7 +76,9 @@ export default function Sidebar() {
           <>
             <NavLink
               to="/login"
-              className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}
+              className={({ isActive }) =>
+                isActive ? "nav-item active" : "nav-item"
+              }
             >
               <div className="icons">
                 <GiEvilBook />
@@ -71,7 +88,9 @@ export default function Sidebar() {
 
             <NavLink
               to="/register"
-              className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}
+              className={({ isActive }) =>
+                isActive ? "nav-item active" : "nav-item"
+              }
             >
               <div className="icons">
                 <GiSpellBook />
@@ -85,7 +104,9 @@ export default function Sidebar() {
           <>
             <NavLink
               to="/home"
-              className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}
+              className={({ isActive }) =>
+                isActive ? "nav-item active" : "nav-item"
+              }
             >
               <div className="icons">
                 <GiGoblinCamp />
@@ -94,8 +115,10 @@ export default function Sidebar() {
             </NavLink>
 
             <NavLink
-              to="/deck"
-              className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}
+              to={lastDeckId ? `/deck/${lastDeckId}` : "/home"}
+              className={() =>
+                isDeckActive ? "nav-item active" : "nav-item"
+              }
             >
               <div className="icons">
                 <GiCardJoker />

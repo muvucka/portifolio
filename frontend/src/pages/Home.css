@@ -1,5 +1,5 @@
 .home {
-  width: 100vw; 
+  width: 100%;
   min-height: 100vh;
   padding: 50px;
   padding-bottom: 120px; /* respeita a footer fixa */

@@ -1,7 +1,7 @@
 .login-page {
   margin: 0;
   padding: 0;
-  width: 100vw;       /* largura total da tela */
+  width: 100%;       /* largura total da tela */
   height: 100vh;
   background-color: #121212;
   background-size: cover;
@@ -113,7 +113,7 @@
 }
 
 .login-card button {
-  width: 320px;
+  width: 240px;
   height: 40px;
   border: none;
   border-radius: 29px;

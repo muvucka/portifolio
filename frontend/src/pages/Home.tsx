@@ -19,7 +19,8 @@ export default function Home() {
   const [proxCanLeft, setProxCanLeft] = useState(false);
   const [proxCanRight, setProxCanRight] = useState(false);
 
-  const ITEMS_PER_PAGE = 10;
+  
+//const ITEMS_PER_PAGE = 10;
 
   async function fetchDecks() {
     try {
@@ -63,59 +64,79 @@ export default function Home() {
   }
 
   async function handleManualImport() {
-    if (!importSection) {
-      alert("Selecione se é Meus Precons ou Próximos Precons");
+  if (!importSection) {
+    alert("Selecione se é Meus Precons ou Próximos Precons");
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem("accessToken");
+    if (!token) throw new Error("Usuário não logado");
+    if (!decklistInput.trim()) throw new Error("Decklist vazia");
+
+    const lines = decklistInput
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
+
+    let deckName = "Deck Importado";
+    let cardLines = lines;
+
+    // Verifica se a primeira linha NÃO começa com um número. 
+    // Se não começar, usamos como nome do deck.
+    if (!/^\d+x?\s+/i.test(lines[0])) {
+      deckName = lines[0];
+      cardLines = lines.slice(1);
+    }
+
+    // Filtra as cartas (agora aceitando "1 " ou "1x ")
+    const validCardLines = cardLines.filter((line) => /^\d+x?\s+/i.test(line));
+
+    if (validCardLines.length === 0) {
+      alert("Nenhuma carta válida encontrada. Use o formato: '1 Nome da Carta'");
       return;
     }
 
-    try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) throw new Error("Usuário não logado");
-      if (!decklistInput.trim()) throw new Error("Decklist vazia");
+    const cards = validCardLines.map((line) => {
+      const match = line.match(/^(\d+)x?\s+(.+)$/i);
+      if (!match) throw new Error(`Linha inválida: "${line}"`);
+      return {
+        quantity: parseInt(match[1], 10),
+        name: match[2],
+      };
+    });
 
-      const lines = decklistInput
-        .split("\n")
-        .map((l) => l.trim())
-        .filter(Boolean);
+    const payload = { name: deckName, cards, section: importSection };
 
-      const deckName = lines[0];
-      const cardLines = lines.slice(1).filter((line) => /^\d+\s+/.test(line));
+    const res = await fetch("http://localhost:3000/decks/import-text", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
 
-      const cards = cardLines.map((line) => {
-        const match = line.match(/^(\d+)\s+(.+)$/);
-        if (!match) throw new Error(`Linha inválida: "${line}"`);
-        return {
-          quantity: parseInt(match[1], 10),
-          name: match[2],
-        };
-      });
-
-      const payload = { name: deckName, cards, section: importSection };
-
-      const res = await fetch("http://localhost:3000/decks/import-text", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const err = await res.text();
-        throw new Error(err);
-      }
-
-      console.log("Deck importado com sucesso!");
-      setModalOpen(false);
-      setDecklistInput("");
-      setImportSection(null);
-      fetchDecks();
-    } catch (err) {
-      console.error("Erro ao importar:", err);
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(err);
     }
-  }
 
+    console.log("Deck importado com sucesso!");
+    setModalOpen(false);
+    setDecklistInput("");
+    setImportSection(null);
+    fetchDecks(); // Supondo que essa função atualiza a interface
+  } catch (err) {
+    console.error("Erro ao importar:", err);
+    alert(`Erro ao importar: ${err instanceof Error ? err.message : "Erro desconhecido"}`);
+  }
+}
+
+  const meus = decks.filter(item => item.section === "meus");
+  
+  const proximos = decks.filter(item => item.section === "proximos");
+  
   return (
     <div className="home">
       <main className="content-wrapper">
@@ -128,7 +149,8 @@ export default function Home() {
               ref={meusRef}
               onScroll={() => updateScroll(meusRef, setMeusCanLeft, setMeusCanRight)}
             >
-              <Section title="" itens={decks.filter(deck => deck.section === "meus").slice(0, ITEMS_PER_PAGE)} />
+              <Section itens={meus} section="meus" />
+              
             </div>
 
             {meusCanLeft && (
@@ -150,7 +172,7 @@ export default function Home() {
               ref={proximosRef}
               onScroll={() => updateScroll(proximosRef, setProxCanLeft, setProxCanRight)}
             >
-              <Section title="" itens={decks.filter(deck => deck.section === "proximos").slice(0,ITEMS_PER_PAGE)} />
+              <Section itens={proximos} section="proximos" />
             </div>
 
             {proxCanLeft && (
@@ -213,7 +235,7 @@ export default function Home() {
                 <textarea
                   value={decklistInput}
                   onChange={(e) => setDecklistInput(e.target.value)}
-                  placeholder={`Ex:\nMarvel Super Heroes Commander\n1 Sol Ring (TMC) 59\n1 Arcane Signet (TMC) 57`}
+                  placeholder={`Ex:\nDungeon of Death\n1 Sol Ring (TMC) 59\n1 Arcane Signet (TMC) 57`}
                   rows={10}
                 />
 

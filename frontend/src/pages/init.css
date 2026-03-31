@@ -1,6 +1,6 @@
 
 .init-page {
-  width: 100vw; 
+  width: 100%; 
   min-height: 100vh;
   padding: 24px;
   background-color: #121212;
@@ -10,7 +10,7 @@
 }
 
 .content-wrapper {
-  margin: 20px 10px 10px;
+  margin: 20px 90px 10px;
   background: none;
 }
 

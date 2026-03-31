@@ -6,7 +6,7 @@ interface DeckHeaderProps {
 }
 export function DeckHeader({ deck }: DeckHeaderProps) {
   console.log('Deck coverImage:', deck.coverImage);
-  const lastUpdated = new Date(deck.lastUpdatedAt).toLocaleDateString('pt-BR', {
+  const lastUpdated = new Date(deck.updatedAt).toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -23,13 +23,13 @@ export function DeckHeader({ deck }: DeckHeaderProps) {
         <div className="deckheader-container">
           <h1 className="deckheader-name">{deck.name}</h1>
           <span className="deck-category-badge">
-            {deck.category}
+            {deck.section}
           </span>
 
           <div className="deckheader-meta">
             <span>{deck.cardsCount} cards</span>
             <span className="deckheader-updated">
-               Last updated {lastUpdated}
+               Ultima Atualização {lastUpdated}
             </span>
           </div>
         </div>

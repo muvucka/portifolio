@@ -3,20 +3,25 @@ import type { Deck } from "../types/Deck";
 import "./Section.css";
 
 interface SectionProps {
-    title: string;
     itens: Deck[];
+    section: "meus" | "proximos";
 }
 
-export function Section({ title, itens }: SectionProps) {
-    return (
-        <section className="section">
-            <h3>{title}</h3>
 
-            <div className="carrosel">
-                {itens.map(deck => (
-                    <DeckCard key={deck.id} deck={deck}/>
-                ))}
-            </div>
-        </section>
-    )
+export function Section({ itens, section }: SectionProps) {
+    console.log("SECTION ATUAL:", section);
+    console.log("ITENS:", itens);
+    
+
+    const filtrados = itens.filter(
+        deck => deck.section === section
+    );
+
+    return (
+        <div className="carrosel">
+            {filtrados.map(deck => (
+                <DeckCard key={deck.id} deck={deck} />
+            ))}
+        </div>
+    );
 }

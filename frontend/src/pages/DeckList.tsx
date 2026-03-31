@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import type { Deck } from "../types/Deck";
 import { DeckHeader } from "../components/DeckHeader";
@@ -16,13 +16,14 @@ import {
   GiFireZone,
   GiWaterSplash,
   GiFluffyCloud,
-  GiDreadSkull,
   GiAlienFire,
   GiBlackHoleBolas,
   GiSun,
+  GiDeathZone,
+  GiCrenelCrown,
 } from "react-icons/gi";
 
-type GroupBy = "none" | "type" | "cmc" | "color";
+type GroupBy = "none" | "type" | "cmc" | "colors";
 type SortBy = "name" | "cmc" | "quantity";
 
 interface DeckCard {
@@ -40,48 +41,48 @@ interface DeckCard {
 const GROUP_ORDER: Record<GroupBy, string[]> = {
   type: [
     "Commander",
-    "Creature",
-    "Sorcery",
-    "Instant",
-    "Enchantment",
-    "Artifact",
-    "Equipment",
-    "Land",
+    "Criaturas",
+    "Magicas",
+    "Instantaneas",
+    "Encantamentos",
+    "Artefatos",
+    "Equipamentos",
+    "Terrenos",
     "Sideboard",
   ],
   cmc: ["CMC 0", "CMC 1", "CMC 2", "CMC 3", "CMC 4", "CMC 5", "CMC 6+"],
-  color: [
-    "White",
-    "Blue",
-    "Black",
-    "Red",
-    "Green",
-    "Multicolored",
-    "Colorless",
-  ],
+  colors: [
+  "Branca",
+  "Azul",
+  "Preta",
+  "Vermelha",
+  "Verde",
+  "Multicoloridas",
+  "Incolores",
+],
   none: [],
 };
 
 const COLOR_ICONS: Record<string, React.ReactNode> = {
-  White: <GiSun />,
-  Blue: <GiWaterSplash />,
-  Black: <GiDreadSkull />,
-  Red: <GiFireZone />,
-  Green: <GiAlienFire />,
-  Multicolored: <GiBlackHoleBolas />,
-  Colorless: <GiFluffyCloud />,
+  Branca: <GiSun />,
+  Azul: <GiWaterSplash />,
+  Preta: <GiDeathZone />,
+  Vermelha: <GiFireZone />,
+  Verde: <GiAlienFire />,
+  Multicoloridas: <GiBlackHoleBolas />,
+  Incolores: <GiFluffyCloud />,
 };
 
 const COLOR_NAMES: Record<string, { icon: React.ReactNode; label: string }> = {
-  W: { icon: <GiSun />, label: "White" },
-  U: { icon: <GiWaterSplash />, label: "Blue" },
-  B: { icon: <GiDreadSkull />, label: "Black" },
-  R: { icon: <GiFireZone />, label: "Red" },
-  G: { icon: <GiAlienFire />, label: "Green" },
+  W: { icon: <GiSun />, label: "Branca" },
+  U: { icon: <GiWaterSplash />, label: "Azul" },
+  B: { icon: <GiDeathZone />, label: "Preta" },
+  R: { icon: <GiFireZone />, label: "Vermelha" },
+  G: { icon: <GiAlienFire />, label: "Verde" },
 };
 
 export default function DeckList() {
-  const { deckId } = useParams();
+  const { id } = useParams();
   const token = localStorage.getItem("accessToken");
 
   const [groupBy, setGroupBy] = useState<GroupBy>("type");
@@ -90,15 +91,19 @@ export default function DeckList() {
   const [deck, setDeck] = useState<Deck | null>(null);
   const [hoveredCard, setHoveredCard] = useState<DeckCard | null>(null);
 
-  // Função fetchDeck com useCallback para garantir que ela não seja recriada a cada renderização
-  const fetchDeck = useCallback(async () => {
-    if (!deckId) {
-      console.error("Deck ID não encontrado");
-      return;
-    }
+  useEffect(() => {
+  if (id) {
+    localStorage.setItem("lastDeckId", id);
+  }
+}, [id]);
 
+  // Função fetchDeck com useCallback para garantir que ela não seja recriada a cada renderização
+  useEffect(() => {
+  if (!id) return;
+
+  const fetchDeck = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/decks/${deckId}`, {
+      const res = await fetch(`http://localhost:3000/decks/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -110,24 +115,25 @@ export default function DeckList() {
     } catch (err) {
       console.error("Erro ao carregar deck:", err);
     }
-  }, [deckId, token]);  // Dependências agora incluem deckId e token
+  };
 
-  useEffect(() => {
-    fetchDeck();
-  }, [fetchDeck]); // Use fetchDeck no array de dependências
+  fetchDeck();
+}, [id, token]);  // Dependências agora incluem id e token
+ // Use fetchDeck no array de dependências
 
   const commanderCard = cards.find((c) => c.isCommander);
 
   const getGroupIcon = (groupBy: GroupBy, group: string) => {
     if (groupBy === "type") {
       const g = group.toLowerCase();
-      if (g.includes("creature")) return <GiBeastEye />;
-      if (g.includes("sorcery")) return <GiUnfriendlyFire />;
-      if (g.includes("instant")) return <GiFocusedLightning />;
-      if (g.includes("artifact")) return <GiMagicLamp />;
-      if (g.includes("equipment")) return <GiSkullShield />;
-      if (g.includes("enchantment")) return <GiFluffyWing />;
-      return <GiTriforce />;
+      if (g.includes("criaturas")) return <GiBeastEye />;
+      if (g.includes("magicas")) return <GiUnfriendlyFire />;
+      if (g.includes("instantaneas")) return <GiFocusedLightning />;
+      if (g.includes("artefatos")) return <GiMagicLamp />;
+      if (g.includes("equipamentos")) return <GiSkullShield />;
+      if (g.includes("encantamentos")) return <GiFluffyWing />;
+      if (g.includes("terrenos")) return <GiTriforce /> ;
+      return <GiCrenelCrown />;
     }
     return null;
   };
@@ -141,7 +147,7 @@ export default function DeckList() {
       return 0;
     });
 
-    if (groupBy === "none") return { "All cards": sorted };
+    if (groupBy === "none") return { "Todas as cartas": sorted };
 
     return sorted.reduce<Record<string, DeckCard[]>>((acc, card) => {
       let key = "Other";
@@ -149,25 +155,25 @@ export default function DeckList() {
       if (groupBy === "type") {
         const typeLine = card.typeLine.toLowerCase();
         if (card.isCommander) key = "Commander";
-        else if (typeLine.includes("creature")) key = "Creature";
-        else if (typeLine.includes("enchantment")) key = "Enchantment";
-        else if (typeLine.includes("sorcery")) key = "Sorcery";
-        else if (typeLine.includes("instant")) key = "Instant";
-        else if (typeLine.includes("artifact")) key = "Artifact";
-        else if (typeLine.includes("equipment")) key = "Equipment";
-        else if (typeLine.includes("land")) key = "Land";
+        else if (typeLine.includes("creature")) key = "Criaturas";
+        else if (typeLine.includes("enchantment")) key = "Encantamentos";
+        else if (typeLine.includes("sorcery")) key = "Magicas";
+        else if (typeLine.includes("instant")) key = "Instantaneas";
+        else if (typeLine.includes("artifact")) key = "Artefatos";
+        else if (typeLine.includes("equipment")) key = "Equipamentos";
+        else if (typeLine.includes("land")) key = "Terrenos";
       }
 
       if (groupBy === "cmc") {
         key = card.cmc >= 6 ? "CMC 6+" : `CMC ${card.cmc}`;
       }
 
-      if (groupBy === "color") {
+      if (groupBy === "colors") {
         const realColors = card.colors;
-        if (realColors.length === 0) key = "Colorless";
+        if (realColors.length === 0) key = "Incolores";
         else if (realColors.length === 1)
           key = COLOR_NAMES[realColors[0]]?.label || realColors[0];
-        else key = "Multicolored";
+        else key = "Multicoloridas";
       }
 
       acc[key] = acc[key] || [];
@@ -181,32 +187,7 @@ export default function DeckList() {
   }
 
   // Atualiza a quantidade no backend
-  const updateQuantity = async (deckCardId: string, newQuantity: number) => {
-    try {
-      const card = cards.find((c) => c.id === deckCardId);
-      if (!card) return;
-
-      const res = await fetch(
-        `http://localhost:3000/decks/${deckId}/cards/${card.cardId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ quantity: newQuantity }),
-        }
-      );
-
-      if (!res.ok) throw new Error("Erro ao atualizar");
-
-      // Chama fetchDeck após atualizar a quantidade
-      await fetchDeck();
-    } catch (err) {
-      console.error(err);
-      alert("Erro ao atualizar carta");
-    }
-  };
+ 
 
   const allGroups = [
     ...(GROUP_ORDER[groupBy].length ? GROUP_ORDER[groupBy] : []),
@@ -238,19 +219,19 @@ export default function DeckList() {
               value={groupBy}
               onChange={(e) => setGroupBy(e.target.value as GroupBy)}
             >
-              <option value="type">Group By Type</option>
-              <option value="cmc">Group By CMC</option>
-              <option value="color">Group By Color</option>
-              <option value="none">No Group</option>
+              <option value="type">Agrupar por Tipo</option>
+              <option value="cmc">Agrupar por CMC</option>
+              <option value="colors">Agrupar por Cor</option>
+              <option value="none">Sem Agrupamento</option>
             </select>
 
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortBy)}
             >
-              <option value="name">Sort by Name</option>
-              <option value="cmc">Sort by CMC</option>
-              <option value="quantity">Sort by Quantity</option>
+              <option value="name">Ordenar por Nome</option>
+              <option value="cmc">Ordenar por CMC</option>
+              <option value="quantity">Ordenar por Quantidade</option>
             </select>
           </section>
 
@@ -268,7 +249,7 @@ export default function DeckList() {
               return (
                 <div key={group} className="deck-group">
                   <h2 className="deck-group-title">
-                    {groupBy === "color" ? (
+                    {groupBy === "colors" ? (
                       <>
                         {COLOR_ICONS[group]} <span> {group} </span>
                       </>
@@ -290,39 +271,26 @@ export default function DeckList() {
                         rowIndex > 0 ? rowIndex * overlapOffset + "px" : undefined;
 
                       return (
-                        <div
-                          key={card.id + "_" + index}
-                          className="deck-card"
-                          style={{
-                            left: colIndex * 180 + "px",
-                            top: topPosition,
-                            zIndex: index,
-                          }}
-                          onMouseEnter={() => setHoveredCard(card)}
-                        >
-                          {card.image && <img src={card.image} alt={card.name} />}
-                          <div className="card-info">
-                            <strong>{card.name}</strong>
-                            <span>CMC {card.cmc}</span>
-                            <div className="quantity-controls">
-                              <button
-                                onClick={() =>
-                                  updateQuantity(card.id, card.quantity - 1)
-                                }
-                              >
-                                -
-                              </button>
-                              <span>{card.quantity}</span>
-                              <button
-                                onClick={() =>
-                                  updateQuantity(card.id, card.quantity + 1)
-                                }
-                              >
-                                +
-                              </button>
-                            </div>
-                          </div>
-                        </div>
+                      <div
+  key={card.id + "_" + index}
+  className="deck-card"
+  style={{
+    left: colIndex * 180 + "px",
+    top: topPosition,
+    zIndex: index,
+  }}
+  onMouseEnter={() => setHoveredCard(card)}
+>
+  <div className="card-image-wrapper">
+    {card.image && <img src={card.image} alt={card.name} />}
+  </div>
+
+  <div className="card-quantity">x{card.quantity}</div>
+
+  <div className="card-info">
+    
+  </div>
+</div>
                       );
                     })}
                   </div>
