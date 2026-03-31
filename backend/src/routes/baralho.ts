@@ -125,22 +125,21 @@ router.delete(
   }
 );
 
-router.post("/import-text", authMiddleware, async (req, res) => {
+router.post("/import-text", authMiddleware,async (req, res) => {
   try {
-    const user = req.user; // vem do authMiddleware
-    const { name, section, cards } = req.body;
+    // Pegando todos os dados que o seu frontend (JSON) enviou
+    const { name, rawDecklist, cards, section } = req.body;
+    
+    // Pegando o ID do usuário do token (depende de como vc fez a autenticação)
+    const userId = req.user.id; 
 
-    if (!cards || cards.length === 0) {
-      throw new Error("Nenhuma decklist fornecida");
-    }
-
-    const deck = await importDeckFromText(req.user.id, name, section, cards);
-
-    res.json(deck);
-  } catch (err: any) {
-    console.error("Erro ao importar deck:", err);
-    res.status(400).json({ error: err.message });
+    const deck = await importDeckFromText(userId, name, rawDecklist, cards, section);
+    
+    return res.status(201).json(deck);
+  } catch (error: any) {
+    console.error(error);
+    return res.status(400).json({ error: error.message });
   }
-});
+})
 
 export default router;

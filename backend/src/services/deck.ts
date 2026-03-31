@@ -20,35 +20,36 @@ export type DeckWithCards = Deck & {
 ========================= */
 // Função de criação de deck
 export async function createDeck(userId: string, data: CreateDeckDTO): Promise<Deck> {
-  // Busca ou cria o comandante
+  // 1. Busca ou cria o comandante
   const commander = await getOrCreateCard(data.commanderName)
-  // Verifica se o comandante é lendário
+  
   if (!commander.typeLine.includes("Legendary")) {
     throw new Error("Comandante precisa ser lendário.");
   }
 
-  // Criação do deck
+  // 2. Criação do deck (CORRIGIDO)
   const deck = await prisma.deck.create({
     data: {
       name: data.name,
       format: "commander",
       commanderId: commander.id,
       userId,
-      section: "meus", // Define a seção como "meus" por padrão
+      // Pega a section que veio do frontend (data). Se não vier, usa "meus"
+      section: data.section || "meus", 
     },
   });
 
-  // Para cada card no array de cards, cria ou busca o card e associa ao deck
+  // 3. Criação das cartas
   for (const cardData of data.cards) {
-    // Passando todos os 4 parâmetros para a função getOrCreateCard
     const card = await getOrCreateCard(cardData.name)
-    // Cria a associação entre o deck e o card
+    
     await prisma.deckCard.create({
       data: {
         deckId: deck.id,
         cardId: card.id,
         quantity: cardData.quantity,
-        section: deck.section, // Adiciona a seção aqui
+        // REMOVA a linha 'section: deck.section' daqui, 
+        // pois DeckCard não tem essa coluna no Prisma!
       },
     });
   }
@@ -75,10 +76,10 @@ export async function getAllDecks(userId: string) {
     format: deck.format,
     updatedAt: deck.updatedAt,
 
-    // ✅ capa estilo Spotify
+    //  capa estilo Spotify
     coverImage: deck.commander?.imageArtCrop ?? null,
 
-    // ✅ total de cartas
+    //  total de cartas
     cardsCount: deck.deckCards.reduce((sum, c) => sum + c.quantity, 0),
     section: deck.section,
   }));
@@ -172,9 +173,11 @@ export async function importDeckFromText(
   userId: string,
   name: string,
   rawDecklist?: string,
-  cards?: { quantity: number; name: string }[]
+  cards?: { quantity: number; name: string }[],
+  section?: "meus" | "proximos" // <-- 1. Adicionado o parâmetro da seção
 ) {
-  if (!rawDecklist && !cards) {
+  // Tratamento de segurança caso o array cards chegue vazio
+  if (!rawDecklist && (!cards || cards.length === 0)) {
     throw new Error("Nenhuma decklist fornecida");
   }
 
@@ -190,17 +193,18 @@ export async function importDeckFromText(
     .filter(Boolean)
     .map(line => {
       const cleaned = line.replace(/\(.*?\)\s*\d*$/, "").trim();
-      const match = cleaned.match(/^(\d+)\s+(.+)$/);
+      // <-- 2. Regex atualizada para aceitar o "x" opcional (ex: 1x Sol Ring)
+      const match = cleaned.match(/^(\d+)x?\s+(.+)$/i); 
       if (!match) return null;
       return {
         quantity: parseInt(match[1]!),
-        name: match[2], // Adiciona a seção aqui
+        name: match[2],
       };
     })
     .filter((x): x is ParsedCard => !!x && !!x.name);
 
   if (parsed.length === 0) {
-    throw new Error("Decklist vazia");
+    throw new Error("Decklist vazia ou com formatação incorreta.");
   }
 
   const uniqueNames = [...new Set(parsed.map(c => c.name))];
@@ -295,6 +299,7 @@ export async function importDeckFromText(
     data: {
       name,
       format: "commander",
+      section: section || "meus", // <-- 3. Salvando a seção corretamente!
       userId,
       commanderId: commander.id,
       deckCards: { create: deckCards },
@@ -517,8 +522,15 @@ export async function getDeckById(
     include: {
       commander: true,
       deckCards: {
-        include: { card: true },
+  include: {
+    card: {
+      include: {
+        colorIdentities: true,
+        colors: true,
       },
+    },
+  },
+},
     },
   });
 }

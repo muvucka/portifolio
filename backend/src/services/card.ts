@@ -15,15 +15,15 @@ export async function getOrCreateCard(name: string) {
   }));
 
   let set = await prisma.set.findUnique({
-    where: { code: scryfallCard.setCode }, // 🔥 aqui também corrigi
+    where: { code: scryfallCard.setCode }, // 
   });
 
   if (!set) {
     set = await prisma.set.create({
       data: {
-        code: scryfallCard.setCode, // 🔥 obrigatório no seu schema
+        code: scryfallCard.setCode, // 
         name: scryfallCard.setName,
-        type: "unknown", // 👈 coloca algo padrão (ou depois melhora)
+        type: "unknown", // 
       },
     });
   }
@@ -36,6 +36,26 @@ export async function getOrCreateCard(name: string) {
       },
     },
   });
+
+  if (card) {
+  card = await prisma.card.update({
+    where: { id: card.id },
+    data: {
+      colors: {
+        deleteMany: {},
+        create: colorsData,
+      },
+      colorIdentities: {
+        deleteMany: {},
+        create: colorIdentitiesData,
+      },
+    },
+    include: {
+      colors: true,
+      colorIdentities: true,
+    },
+  });
+}
 
   if (!card) {
     card = await prisma.card.create({

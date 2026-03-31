@@ -2,7 +2,8 @@
 export interface CreateDeckDTO {
   name: string;
   description: string;
-  commanderName: string;  // O nome do comandante
+  commanderName: string;
+  section:  "meus" | "proximos";   // A seção a qual o deck pertence
   cards: {
     name: string;  // Nome do card
     quantity: number;
