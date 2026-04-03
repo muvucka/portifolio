@@ -9,12 +9,18 @@ const app = express();
 
 // CORS
 const allowedOrigins = [
-  "https://portifolio-pmzupe0n1-muvuckas-projects.vercel.app",
+  "https://portifolio-muvuckas-projects.vercel.app",
   "http://localhost:3000"
 ];
 
 app.use(cors({
-  origin: "*",
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true); // Postman ou requests sem origin
+    if (allowedOrigins.indexOf(origin) === -1) {
+      return callback(new Error(`CORS não permitido para ${origin}`), false);
+    }
+    return callback(null, true);
+  },
   credentials: true
 }));
 
