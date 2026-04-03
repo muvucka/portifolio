@@ -1,21 +1,42 @@
 import express from "express";
+import cors from "cors";
+
 import authRoutes from "./routes/authRoutes.js";
 import deckRoutes from "./routes/baralho.js";
 import explorerRoutes from "./routes/explorer.js";
-import cors from "cors";
 
 const app = express();
 
-// Habilitando o CORS para o frontend
-app.use(cors({
-  origin: "*"
-}));
-app.use("/explorer", explorerRoutes);
+// ----------------------
+// Configuração de CORS
+// ----------------------
 
-// Middleware para processar requisições JSON
+// Front-end hospedado na Vercel
+const allowedOrigins = [
+  "https://portifolio-pmzupe0n1-muvuckas-projects.vercel.app",
+  "http://localhost:3000" // opcional, para testes locais
+];
+
+app.use(cors({
+  origin: function(origin, callback) {
+    // permite requests sem origin (como Postman)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = `O CORS para este site (${origin}) não está permitido!`;
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true // se precisar enviar cookies
+}));
+
+// Middleware para processar JSON
 app.use(express.json());
 
-// Rotas de autenticação e decks
+// ----------------------
+// Rotas
+// ----------------------
+app.use("/explorer", explorerRoutes);
 app.use("/", authRoutes);
 app.use("/decks", deckRoutes);
 
