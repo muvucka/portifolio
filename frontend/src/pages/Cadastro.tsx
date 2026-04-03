@@ -46,8 +46,8 @@ function Register() {
       } else {
         alert("Erro inesperado");
       }
-    } // ✅ fecha o catch
-  } // ✅ fecha a função
+    } 
+  } 
 
   return (
     <div className="register-page">
