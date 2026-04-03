@@ -19,7 +19,7 @@ export default function Init() {
   const [setsCanScrollRight, setSetsCanScrollRight] = useState(false);
 
   const ITEMS_PER_PAGE = 10;
-  const API = import.meta.env.VITE_API_URL;
+  const API = import.meta.env.VITE_API_URL || "https://portifolio-production-539d.up.railway.app";
   
   useEffect(() => {
     async function fetchDiscover() {
