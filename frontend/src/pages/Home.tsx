@@ -14,7 +14,8 @@ export default function Home() {
   const meusRef = useRef<HTMLDivElement | null>(null);
   const proximosRef = useRef<HTMLDivElement | null>(null);
   
-  const API = import.meta.env.VITE_API_URL;
+  const API = import.meta.env.VITE_API_URL || "https://portifolio-production-539d.up.railway.app";
+  
 
   const [meusCanLeft, setMeusCanLeft] = useState(false);
   const [meusCanRight, setMeusCanRight] = useState(false);
