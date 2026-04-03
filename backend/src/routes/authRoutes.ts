@@ -7,7 +7,7 @@ const controller = new AuthController();
 
 router.get("/", (req, res) => {
   console.log('Raiz de auth acessada');
-  res.send("Bem-vindo! Faça login em POST /login");
+  res.send("Bem-vindo! Faça login em POST /auth/login");
 });
 
 router.post("/auth/register", controller.register);
