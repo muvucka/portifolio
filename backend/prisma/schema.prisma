@@ -94,6 +94,7 @@ model Set {
 
   @@index([releaseAt])
   @@index([type])
+  @@map("`Set`") 
 }
 
 enum DeckSection {
