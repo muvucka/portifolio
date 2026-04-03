@@ -19,13 +19,14 @@ export default function Init() {
   const [setsCanScrollRight, setSetsCanScrollRight] = useState(false);
 
   const ITEMS_PER_PAGE = 10;
-
+  const API = import.meta.env.VITE_API_URL;
+  
   useEffect(() => {
     async function fetchDiscover() {
       setLoading(true);
 
       try {
-        const res = await fetch("http://portifolio-production-539d.up.railway.app/explorer/discover");
+        const res = await fetch(`${API}/explorer/discover`);
 
         if (!res.ok) {
           throw new Error(`Erro ao buscar discover: ${res.status} ${res.statusText}`);

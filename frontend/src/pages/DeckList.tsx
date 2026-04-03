@@ -90,6 +90,7 @@ export default function DeckList() {
   const [cards, setCards] = useState<DeckCard[]>([]);
   const [deck, setDeck] = useState<Deck | null>(null);
   const [hoveredCard, setHoveredCard] = useState<DeckCard | null>(null);
+  const API = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
   if (id) {
@@ -103,7 +104,7 @@ export default function DeckList() {
 
   const fetchDeck = async () => {
     try {
-      const res = await fetch(`http://portifolio-production-539d.up.railway.app/decks/${id}`, {
+      const res = await fetch(`${API}/decks/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

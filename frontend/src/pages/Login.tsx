@@ -3,6 +3,8 @@ import "./Login.css";
 import { GiDiceFire } from "react-icons/gi";
 import { useState } from "react";
 
+const API = import.meta.env.VITE_API_URL;
+
 function Login() {
   const navigate = useNavigate();
 
@@ -13,7 +15,7 @@ function Login() {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://portifolio-production-539d.up.railway.app/auth/login", {
+      const res = await fetch(`${API}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

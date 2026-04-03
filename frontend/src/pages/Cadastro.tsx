@@ -9,6 +9,7 @@ function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const API = import.meta.env.VITE_API_URL;
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
@@ -19,7 +20,7 @@ function Register() {
     }
 
     try {
-      const res = await fetch("http://portifolio-production-539d.up.railway.app/auth/register", {
+      const res = await fetch(`${API}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

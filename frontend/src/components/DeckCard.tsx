@@ -12,6 +12,7 @@ interface DeckCardProps {
 export function DeckCard({ deck, onDelete }: DeckCardProps) {
   const navigate = useNavigate();
   const [visible, setVisible] = useState(true);
+  const API = import.meta.env.VITE_API_URL;
 
   const handleDeleteDeck = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -23,7 +24,7 @@ export function DeckCard({ deck, onDelete }: DeckCardProps) {
       const token = localStorage.getItem("accessToken");
       if (!token) throw new Error("Usuário não logado");
 
-      const res = await fetch(`http://portifolio-production-539d.up.railway.app/decks/${deck.id}`, {
+      const res = await fetch(`${API}/decks/${deck.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

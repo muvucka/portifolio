@@ -13,6 +13,8 @@ export default function Home() {
 
   const meusRef = useRef<HTMLDivElement | null>(null);
   const proximosRef = useRef<HTMLDivElement | null>(null);
+  
+  const API = import.meta.env.VITE_API_URL;
 
   const [meusCanLeft, setMeusCanLeft] = useState(false);
   const [meusCanRight, setMeusCanRight] = useState(false);
@@ -27,7 +29,7 @@ export default function Home() {
       const token = localStorage.getItem("accessToken");
       if (!token) throw new Error("Usuário não logado");
 
-      const res = await fetch("http://portifolio-production-539d.up.railway.app/decks", {
+      const res = await fetch(`${API}/decks`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -108,7 +110,7 @@ export default function Home() {
 
     const payload = { name: deckName, cards, section: importSection };
 
-    const res = await fetch("http://portifolio-production-539d.up.railway.app/decks/import-text", {
+    const res = await fetch(`${API}/decks/import-text`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
