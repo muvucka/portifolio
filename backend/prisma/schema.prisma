@@ -81,10 +81,10 @@ model CardColor {
 
 model Set {
   id        String    @id @default(uuid())
-  code      String    @unique // 👈 ESSENCIAL (ex: "cmm")
+  code      String    @unique //
   name      String
   type      String // commander, expansion, etc
-  iconSvg   String? // 👈 imagem do set
+  iconSvg   String? // 
   releaseAt DateTime?
 
   cards Card[]
@@ -94,7 +94,7 @@ model Set {
 
   @@index([releaseAt])
   @@index([type])
-  @@map("`Set`") 
+  @@map("sets") 
 }
 
 enum DeckSection {

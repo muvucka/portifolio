@@ -65,7 +65,7 @@ CREATE TABLE `CardColor` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `Set` (
+CREATE TABLE ``Set`` (
     `id` VARCHAR(191) NOT NULL,
     `code` VARCHAR(191) NOT NULL,
     `name` VARCHAR(191) NOT NULL,
@@ -75,9 +75,9 @@ CREATE TABLE `Set` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
-    UNIQUE INDEX `Set_code_key`(`code`),
-    INDEX `Set_releaseAt_idx`(`releaseAt`),
-    INDEX `Set_type_idx`(`type`),
+    UNIQUE INDEX ``Set`_code_key`(`code`),
+    INDEX ``Set`_releaseAt_idx`(`releaseAt`),
+    INDEX ``Set`_type_idx`(`type`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -113,7 +113,7 @@ CREATE TABLE `DeckCard` (
 ALTER TABLE `RefreshToken` ADD CONSTRAINT `RefreshToken_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Card` ADD CONSTRAINT `Card_setCode_fkey` FOREIGN KEY (`setCode`) REFERENCES `Set`(`code`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Card` ADD CONSTRAINT `Card_setCode_fkey` FOREIGN KEY (`setCode`) REFERENCES ``Set``(`code`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `CardColorIdentity` ADD CONSTRAINT `CardColorIdentity_cardId_fkey` FOREIGN KEY (`cardId`) REFERENCES `Card`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
