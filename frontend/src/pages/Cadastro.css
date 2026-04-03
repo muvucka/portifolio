@@ -21,7 +21,7 @@
 }
 
 .center-register h1 {
-  max-width: 200px; /* 👈 controla quantas linhas */
+  max-width: 200px; 
   text-align: center;
   margin-top: 0px;
 }

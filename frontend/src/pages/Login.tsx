@@ -24,20 +24,20 @@ function Login() {
       });
 
       const data = await res.json();
-      console.log("Resposta do backend:", data); // ✅ debug do token
+      console.log("Resposta do backend:", data); 
 
       if (!res.ok) {
         throw new Error(data.error || "Erro ao logar");
       }
 
-      // ✅ salva o token no localStorage
+      
       localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("refreshToken", data.refreshToken);      // se você quiser guardar o refresh
+      localStorage.setItem("refreshToken", data.refreshToken);     
       console.log("Token salvo no localStorage:", localStorage.getItem("accessToken"));
-      window.dispatchEvent(new Event("login")); // ⚡️ evento customizado
+      window.dispatchEvent(new Event("login")); 
       
 
-      // ✅ redireciona para a home
+     
       navigate("/home");
     } catch (err: unknown) {
       if (err instanceof Error) {

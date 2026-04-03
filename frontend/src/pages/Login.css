@@ -8,7 +8,7 @@
   font-family: var(--font-main);
   display: flex;
   justify-content: center;
-  align-items: flex-start; /* 👈 em vez de center */
+  align-items: flex-start; 
   padding-top: 80px;     
   flex: 1;
   position: relative;
