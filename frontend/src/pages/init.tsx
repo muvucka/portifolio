@@ -58,7 +58,7 @@ export default function Init() {
     }
 
     fetchDiscover();
-  }, []);
+  }, [API]);
 
   function handleScroll(
     ref: React.RefObject<HTMLDivElement | null>,
