@@ -25,7 +25,7 @@ export default function Init() {
       setLoading(true);
 
       try {
-        const res = await fetch("http://localhost:3000/explorer/discover");
+        const res = await fetch("http://portifolio-production-539d.up.railway.app/explorer/discover");
 
         if (!res.ok) {
           throw new Error(`Erro ao buscar discover: ${res.status} ${res.statusText}`);

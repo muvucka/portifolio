@@ -27,7 +27,7 @@ export default function Home() {
       const token = localStorage.getItem("accessToken");
       if (!token) throw new Error("Usuário não logado");
 
-      const res = await fetch("http://localhost:3000/decks", {
+      const res = await fetch("http://portifolio-production-539d.up.railway.app/decks", {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -108,7 +108,7 @@ export default function Home() {
 
     const payload = { name: deckName, cards, section: importSection };
 
-    const res = await fetch("http://localhost:3000/decks/import-text", {
+    const res = await fetch("http://portifolio-production-539d.up.railway.app/decks/import-text", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

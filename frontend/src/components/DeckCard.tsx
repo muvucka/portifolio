@@ -23,7 +23,7 @@ export function DeckCard({ deck, onDelete }: DeckCardProps) {
       const token = localStorage.getItem("accessToken");
       if (!token) throw new Error("Usuário não logado");
 
-      const res = await fetch(`http://localhost:3000/decks/${deck.id}`, {
+      const res = await fetch(`http://portifolio-production-539d.up.railway.app/decks/${deck.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

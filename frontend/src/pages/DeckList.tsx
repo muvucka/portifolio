@@ -103,7 +103,7 @@ export default function DeckList() {
 
   const fetchDeck = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/decks/${id}`, {
+      const res = await fetch(`http://portifolio-production-539d.up.railway.app/decks/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
