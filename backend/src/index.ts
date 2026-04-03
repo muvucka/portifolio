@@ -1,6 +1,7 @@
 import app from "./app.js";
 import { syncScryfallSets } from "./services/scryfallSync.js";
 import cron from "node-cron";
+import 'dotenv/config';
 
 const PORT = process.env.PORT || 3000;
 
