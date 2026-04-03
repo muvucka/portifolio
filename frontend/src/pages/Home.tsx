@@ -29,7 +29,7 @@ export default function Home() {
       const token = localStorage.getItem("accessToken");
       if (!token) throw new Error("Usuário não logado");
 
-      const res = await fetch(`${API}/decks`, {
+      const res = await fetch(`${API}/auth/decks`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
