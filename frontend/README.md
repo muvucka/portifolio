@@ -55,7 +55,7 @@ Imagem
 ![pagina cadastro](assets/register.png)
 ![pagina principal](assets/home.png)
 ![card-hover](assets/home-hover.png)
-![popup de add](assets/add.png)
+![popup de add](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/add.png)
 ![modal de add](assets/boxadd.png)
 Vídeo
 ![fluxo inicial](assets/screen-video.mp4)
