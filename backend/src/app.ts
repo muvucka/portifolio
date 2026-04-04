@@ -8,33 +8,12 @@ import explorerRoutes from "./routes/explorer.js";
 
 const app = express();
 
-// Mantendo a rota já existente do explorerRoutes
-app.get("/explorer/discover", async (req, res) => {
-  try {
-    const [rows] = await pool.query("SELECT * FROM discover LIMIT 10"); // Ajuste a tabela
-    res.json({
-      latestSets: rows, // Exemplo, mapeie conforme sua tabela real
-      precons: rows
-    });
-  } catch (err: any) {
-    console.error("Erro ao buscar discover:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.use("/explorer", explorerRoutes);
-// Middleware para processar JSON
-app.use(express.json());
-
-// Habilitando CORS para qualquer origem (pode restringir depois)
-app.use(cors({
-  origin: "*" // ou coloque seu front-end
-}));
-
-// --- Conexão MySQL mínima ---
 function getEnvVar(name: string): string {
   const value = process.env[name];
-  if (!value) throw new Error(`Variável de ambiente ${name} não definida`);
+  if (!value) {
+    console.error(`Variável ${name} não definida`);
+    return "";
+  }
   return value;
 }
 
@@ -46,15 +25,36 @@ const pool = mysql.createPool({
   port: Number(process.env.MYSQL_PORT || 3306)
 });
 
-// Exemplo mínimo de endpoint /explorer/discover
+app.use(express.json());
 
+app.use(cors({
+  origin: "*"
+}));
 
-// Rotas existentes
+app.get("/", (req, res) => {
+  res.send("API OK");
+});
+
+app.get("/explorer/discover", async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT * FROM discover LIMIT 10");
+    res.json({
+      latestSets: rows,
+      precons: rows
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.use("/explorer", explorerRoutes);
 app.use("/", authRoutes);
 app.use("/decks", deckRoutes);
 
-// Porta para Railway / Vercel
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server rodando na porta ${PORT}`));
+
+app.listen(PORT, () => {
+  console.log(`Server rodando na porta ${PORT}`);
+});
 
 export default app;
