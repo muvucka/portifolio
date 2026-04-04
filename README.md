@@ -49,18 +49,33 @@ O objetivo é mostrar domínio completo de stack, incluindo: modelagem de dados,
 
 ## Imagens e Vídeos
 
-Imagem
-![pagina inicial](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/raiz.png)
-![pagina login](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/login.png)
-![pagina cadastro](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/register.png)
-![pagina principal](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/home.png)
-![card-hover](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/home-hover.png)
-![popup de add](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/add.png)
-![modal de add](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/boxadd.png)
-![deck list](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/decks.png)
-Vídeo
-![fluxo inicial](assets/screen-video.mp4)
-![fluxo deckList](assets/screen-video_WC5fSxlp.mp4)
+<!-- Grade de imagens -->
+<div style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: flex-start;">
+
+  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/raiz.png" alt="Página Inicial" width="800" style="border-radius: 100px;" />
+  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/login.png" alt="Login" width="800" style="border-radius: 100px;" />
+  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/register.png" alt="Cadastro" width="800" style="border-radius: 100px;" />
+  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/home.png" alt="Página Principal" width="800" style="border-radius: 100px;" />
+  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/home-hover.png" alt="Card Hover" width="800" style="border-radius: 100px;" />
+  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/add.png" alt="Popup de Add" width="800" style="border-radius: 100px;" />
+  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/boxadd.png" alt="Modal de Add" width="800" style="border-radius: 100px;" />
+  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/decks.png" alt="Deck List" width="800" style="border-radius: 100px;" />
+
+</div>
+
+<br>
+
+<!-- Vídeos com miniaturas clicáveis -->
+<div style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: flex-start;">
+
+  <a href="assets/screen-video.mp4">
+    <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/raiz.png" alt="Fluxo Inicial" width="300" style="border-radius: 100px;" />
+  </a>
+  <a href="assets/screen-video_WC5fSxlp.mp4">
+    <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/decks.png" alt="Fluxo DeckList" width="300" style="border-radius: 100px;" />
+  </a>
+
+</div>
 
 ---
 
