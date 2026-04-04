@@ -50,13 +50,14 @@ O objetivo é mostrar domínio completo de stack, incluindo: modelagem de dados,
 ## Imagens e Vídeos
 
 Imagem
-![pagina inicial](assets/raiz.png)
-![pagina login](assets/login.png)
-![pagina cadastro](assets/register.png)
-![pagina principal](assets/home.png)
-![card-hover](assets/home-hover.png)
+![pagina inicial](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/raiz.png)
+![pagina login](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/login.png)
+![pagina cadastro](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/register.png)
+![pagina principal](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/raiz.png)
+![card-hover](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/home-hover.png)
 ![popup de add](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/add.png)
-![modal de add](assets/boxadd.png)
+![modal de add](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/boxadd.png)
+![deck list](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/decks.png)
 Vídeo
 ![fluxo inicial](assets/screen-video.mp4)
 ![fluxo deckList](assets/screen-video_WC5fSxlp.mp4)
