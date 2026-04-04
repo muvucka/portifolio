@@ -53,7 +53,7 @@ Imagem
 ![pagina inicial](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/raiz.png)
 ![pagina login](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/login.png)
 ![pagina cadastro](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/register.png)
-![pagina principal](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/raiz.png)
+![pagina principal](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/home.png)
 ![card-hover](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/home-hover.png)
 ![popup de add](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/add.png)
 ![modal de add](https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/boxadd.png)
