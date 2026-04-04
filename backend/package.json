@@ -9,6 +9,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "sync": "node dist/scripts/sync.js",
     "postinstall": "prisma generate"
   },
   "keywords": [],
