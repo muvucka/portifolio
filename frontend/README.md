@@ -1,75 +1,130 @@
-# React + TypeScript + Vite
+# Portfólio de Aplicação Fullstack
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Descrição do Projeto
 
-Currently, two official plugins are available:
+Este projeto de gerenciamento de decks precons de magic é um portfólio funcional que demonstra habilidades que foram adquiridas em desenvolvimento web pra simular projetos confidenciais trabalhados em estagio:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Frontend**: Desenvolvido com Vite, consumindo APIs externas e internas.
+- **Backend**: Node.js com Express, arquitetura MVC (Controllers, Routes, Middlewares).
+- **Banco de Dados**: MySQL, utilizando Prisma com migrations code-first.
+- **Autenticação**: JWT para login, refresh tokens e proteção de rotas.
+- **Deploy**: Aplicação hospedada na nuvem (Railway e Vercel), pronta para produção.
+- **Consumo de API externa**: Integração com a API Scryfall para busca de cartas.
+- **Tratamento de dados**: Normalização e enriquecimento dos dados retornados.
 
-## React Compiler
+O objetivo é mostrar domínio completo de stack, incluindo: modelagem de dados, migrations, arquitetura de projeto, consumo e tratamento de APIs, deploy e configuração de variáveis de ambiente.
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+---
 
-Note: This will impact Vite dev & build performances.
+## Arquitetura do Projeto
 
-## Expanding the ESLint configuration
+/backend
+├─ prisma/ # Schema, migrations e client Prisma
+├─ routes/ # Rotas agrupadas por funcionalidade
+├─ auth/ # Controllers de autenticação
+├─ app.js # Configuração do Express e middlewares
+└─ index.js # Entry point do servidor
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+/frontend
+├─ src/ # Código do frontend em Vite
+└─ assets/ # Imagens e vídeos do projeto
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- **Backend**: MVC + middlewares + JWT
+- **Banco**: MySQL com Prisma (code-first, migrations)
+- **Frontend**: SPA consumindo o backend
+- **Deploy**: App rodando na nuvem com todas variáveis configuradas
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+---
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Funcionalidades
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+- Registro, login, refresh e logout de usuários
+- Criação, listagem e gerenciamento de decks
+- Busca de dados externos via API (Scryfall)
+- Proteção de rotas com JWT
+- Exposição de endpoints REST consumidos pelo frontend
+- Hospedagem completa na nuvem
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+---
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Imagens e Vídeos
+
+Imagem
+![pagina inicial](./assets/raiz.png)
+![pagina login](./assets/login.png)
+![pagina cadastro](./assets/register.png)
+![pagina principal](./assets/home.png)
+![card-hover](./assets/home-hover.png)
+![popup de add](./assets/add.png)
+![modal de add](./assets/boxadd.png)
+Vídeo
+![fluxo inicial](./assets/screen-video.mp4)
+![fluxo deckList](./assets/screen-video_WC5fSxlp.mp4)
+
+---
+
+## Instalação Local
+
+1. Clone o repositório:
+
+```bash
+git clone <URL_DO_REPOSITORIO>
+cd <PASTA_DO_PROJETO>
+Backend:
+cd backend
+npm install
+cp .env.example .env
+# Configure as variáveis de ambiente
+npm run build
+npm run start
+Frontend:
+cd frontend
+npm install
+npm run dev
+Acesse:
+Backend: http://localhost:8080
+Frontend: http://localhost:3000 (ou porta do Vite)
+Deploy em Produção
+Configurar banco de dados na nuvem (ex: Railway):
+Criar database MySQL
+Configurar variáveis de ambiente:
+DATABASE_URL
+JWT_SECRET
+JWT_REFRESH_SECRET
+Rodar migrations: prisma migrate deploy
+Backend:
+Hospedar no Railway
+Configurar build e start scripts
+Frontend:
+Hospedar no Vercel ou similar
+Configurar endpoint da API no .env
+Consumo de API Externa
+
+O backend integra a API Scryfall
+ para buscar cartas, enriquecendo os dados antes de enviar ao frontend.
+
+Controller trata a requisição
+Filtra cartas lendárias
+Retorna imagem ou placeholder caso não exista
+JWT e Middleware
+Middleware de autenticação verifica token
+Rotas privadas são protegidas
+Refresh token permite manter sessão ativa
+Estrutura de Banco (Prisma + Migrations)
+Code-first
+Modelos principais:
+User
+Deck
+Card
+DeckCard
+RefreshToken
+Índices e constraints configurados no schema
+prisma generate para gerar client
+
+
+Scripts Disponíveis
+"scripts": {
+  "build": "prisma generate && tsc",
+  "start": "prisma migrate deploy && node dist/index.js",
+  "dev": "tsx watch src/index.ts",
+  "sync": "node dist/scripts/sync.js" }
