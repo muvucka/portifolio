@@ -35,7 +35,7 @@ app.get("/", (req, res) => {
   res.send("API OK");
 });
 
-//app.use("/explorer", explorerRoutes);
+app.use("/explorer", explorerRoutes);
 app.use("/auth", authRoutes);
 app.use("/decks", deckRoutes);
 
