@@ -1,5 +1,6 @@
 import { Router } from "express";
 import prisma from "../db.js";
+import fetch from "node-fetch";
 
 const router = Router();
 

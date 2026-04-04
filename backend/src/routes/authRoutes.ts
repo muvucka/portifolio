@@ -5,7 +5,7 @@ import { AuthController } from "../auth/authController.js";
 const router = Router();
 const controller = new AuthController();
 
-router.get("/", (req, res) => {
+router.get("/status", (req, res) => {
   console.log('Raiz de auth acessada');
   res.send("Bem-vindo! Faça login em POST /auth/login");
 });

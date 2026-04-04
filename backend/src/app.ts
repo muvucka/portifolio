@@ -35,23 +35,11 @@ app.get("/", (req, res) => {
   res.send("API OK");
 });
 
-app.get("/explorer/discover", async (req, res) => {
-  try {
-    const [rows] = await pool.query("SELECT * FROM discover LIMIT 10");
-    res.json({
-      latestSets: rows,
-      precons: rows
-    });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 app.use("/explorer", explorerRoutes);
-app.use("/", authRoutes);
+app.use("/auth", authRoutes);
 app.use("/decks", deckRoutes);
 
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT);
 
 app.listen(PORT, () => {
   console.log(`Server rodando na porta ${PORT}`);
