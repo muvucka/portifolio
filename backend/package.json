@@ -10,7 +10,8 @@
     "build": "prisma generate && tsc",
     "start":"npm run build && prisma migrate deploy && node dist/index.js",
     "sync": "node dist/scripts/sync.js",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "fix-colors": "node dist/scripts/fixCardColors.js"
   },
   "keywords": [],
   "author": "",
