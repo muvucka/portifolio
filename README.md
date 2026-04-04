@@ -52,14 +52,14 @@ O objetivo é mostrar domínio completo de stack, incluindo: modelagem de dados,
 <!-- Grade de imagens -->
 <div style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: flex-start;">
 
-  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/raiz.png" alt="Página Inicial" width="200" style="border-radius: 12px;" />
-  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/login.png" alt="Login" width="200" style="border-radius: 12px;" />
-  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/register.png" alt="Cadastro" width="200" style="border-radius: 12px;" />
-  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/home.png" alt="Página Principal" width="200" style="border-radius: 12px;" />
-  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/home-hover.png" alt="Card Hover" width="200" style="border-radius: 12px;" />
-  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/add.png" alt="Popup de Add" width="200" style="border-radius: 12px;" />
-  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/boxadd.png" alt="Modal de Add" width="200" style="border-radius: 12px;" />
-  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/decks.png" alt="Deck List" width="200" style="border-radius: 12px;" />
+  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/raiz.png" alt="Página Inicial" width="500" style="border-radius: 12px;" />
+  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/login.png" alt="Login" width="500" style="border-radius: 12px;" />
+  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/register.png" alt="Cadastro" width="500" style="border-radius: 12px;" />
+  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/home.png" alt="Página Principal" width="500" style="border-radius: 12px;" />
+  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/home-hover.png" alt="Card Hover" width="500" style="border-radius: 12px;" />
+  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/add.png" alt="Popup de Add" width="500" style="border-radius: 12px;" />
+  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/boxadd.png" alt="Modal de Add" width="500" style="border-radius: 12px;" />
+  <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/decks.png" alt="Deck List" width="500" style="border-radius: 12px;" />
 
 </div>
 
@@ -69,10 +69,10 @@ O objetivo é mostrar domínio completo de stack, incluindo: modelagem de dados,
 <div style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: flex-start;">
 
   <a href="assets/screen-video.mp4">
-    <img src="img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/raiz.png" alt="Fluxo Inicial" width="200" style="border-radius: 12px;" />
+    <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/raiz.png" alt="Fluxo Inicial" width="400" style="border-radius: 12px;" />
   </a>
   <a href="assets/screen-video_WC5fSxlp.mp4">
-    <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/decks.png" alt="Fluxo DeckList" width="200" style="border-radius: 12px;" />
+    <img src="https://github.com/muvucka/portifolio/blob/main/frontend/src/assets/decks.png" alt="Fluxo DeckList" width="400" style="border-radius: 12px;" />
   </a>
 
 </div>
