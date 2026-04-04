@@ -50,16 +50,16 @@ O objetivo é mostrar domínio completo de stack, incluindo: modelagem de dados,
 ## Imagens e Vídeos
 
 Imagem
-![pagina inicial](./assets/raiz.png)
-![pagina login](./assets/login.png)
-![pagina cadastro](./assets/register.png)
-![pagina principal](./assets/home.png)
-![card-hover](./assets/home-hover.png)
-![popup de add](./assets/add.png)
-![modal de add](./assets/boxadd.png)
+![pagina inicial](assets/raiz.png)
+![pagina login](assets/login.png)
+![pagina cadastro](assets/register.png)
+![pagina principal](assets/home.png)
+![card-hover](assets/home-hover.png)
+![popup de add](assets/add.png)
+![modal de add](assets/boxadd.png)
 Vídeo
-![fluxo inicial](./assets/screen-video.mp4)
-![fluxo deckList](./assets/screen-video_WC5fSxlp.mp4)
+![fluxo inicial](assets/screen-video.mp4)
+![fluxo deckList](assets/screen-video_WC5fSxlp.mp4)
 
 ---
 
